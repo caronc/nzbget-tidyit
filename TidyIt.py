@@ -683,6 +683,9 @@ if __name__ == "__main__":
         if not _video_minsize:
             script.set('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)
 
+        if not _safeentries:
+            script.set('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES)
+
         # Force generic Video Extensions
         script.set('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
 
