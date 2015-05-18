@@ -168,8 +168,7 @@ from os.path import abspath
 from os.path import dirname
 from os.path import isdir
 from os import unlink
-from os import rmdir
-
+from shutil import rmtree
 from stat import ST_MTIME
 # This is required if the below environment variables
 # are not included in your environment already
@@ -308,7 +307,7 @@ class TidyItScript(SchedulerScript):
             # Directory Removal
             if self.mode == TIDYIT_MODE.ENABLED:
                 try:
-                    rmdir(path)
+                    rmtree(path)
                     self.logger.info('Removed DIRECTORY: %s' % path)
                 except:
                     self.logger.error('Could not removed DIRECTORY: %s' % path)
