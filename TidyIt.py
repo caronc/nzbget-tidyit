@@ -58,7 +58,7 @@
 # Identify the TidyIt Mode you want to run in:
 #  Enabled    - This enables the full capacity of this script. Actions are
 #               still always logged eve with this mode set.
-#  Preview    - Log all planned tidy actions but do not actually do perform
+#  Disabled   - Log all planned tidy actions but do not actually do perform
 #               them. This is the absolute safest mode to survey things with
 #               first.
 #
@@ -71,7 +71,7 @@
 # NOTE: that you should ALWAYS operate in 'Preview' mode first to confirm
 #       that the script doesn't cause irreversable damage to your media library.
 #
-#Mode=Preview
+#Mode=Disabled
 
 # Video Libraries to Scan
 #
@@ -219,7 +219,7 @@ IGNORE_FILELIST_RE = (
 
 class TIDYIT_MODE(object):
     ENABLED = "Enabled"
-    DISABLED = "Preview"
+    DISABLED = "Disabled"
 
 # TidyIt Modes
 TIDYIT_MODES = (
