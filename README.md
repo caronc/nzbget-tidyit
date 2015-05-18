@@ -63,6 +63,14 @@ Options:
   -n ENCODING, --encoding=ENCODING
                         The system encoding to use (utf-8, ISO-8859-1, etc).
                         The default value is 'UTF-8'.
+  -s ENTRIES, --safe-entries=ENTRIES
+                        If a safe-entry file/dir is located within a path
+                        scanned then the path is ignored. Use safe-entry files
+                        (or dirs) to intentionally ignore directories of your
+                        choice that reside in your video library. You can
+                        specify more then one safe-entry by separating them
+                        with a comma (,). The default value(s) are
+                        '.tidysafe'.
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
                         Specify the minimum size a video must be before it's
                         treated as part of your collection. This value is used
