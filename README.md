@@ -98,12 +98,12 @@ python TidyIt.py -c /usr/share/TVShows
 You can scan multiple directories with the following command:
 ```bash
 # Scan a your librarys (print only mode)
-python TidyIt.py /usr/share/TVShows, /usr/share/Movies
+python TidyIt.py /usr/share/TVShows /usr/share/Movies
 ```
 
 If the script behaves as you expect it, you can schedule it as a cron
 to frequently clean your libraries every day with a command such as:
 ```bash
 # $> crontab -e
-0 0 * * * /path/to/TidyIt.py -c /usr/share/TVShows, /usr/share/Movies
+0 0 * * * /path/to/TidyIt.py -c /usr/share/TVShows /usr/share/Movies
 ```
