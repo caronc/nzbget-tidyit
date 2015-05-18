@@ -124,7 +124,7 @@
 # filenames. Simply use a comma and/or space to delimite multiple safe
 # entries.
 #
-#TidySafeEntries=.notidy
+#SafeEntries=.notidy
 
 # My Systems File Encoding (UTF-8, UTF-16, ISO-8859-1, ISO-8859-2).
 #
@@ -504,7 +504,7 @@ class TidyItScript(SchedulerScript):
             'VideoPaths',
             'VideoMinSize',
             'VideoExtensions',
-            'TidySafeEntries',
+            'SafeEntries',
             'VideoExtras',
             'SystemEncoding')):
 
@@ -513,7 +513,7 @@ class TidyItScript(SchedulerScript):
 
         # Fix mode to object (self.*)
         self.mode = self.get('Mode', TIDYIT_MODE_DEFAULT)
-        self.tidysafe_entries = self.parse_list(self.get('TidySafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
+        self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
 
         # Remaining Environment Variables
         video_extension = self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
@@ -560,6 +560,19 @@ if __name__ == "__main__":
         help="The system encoding to use (utf-8, ISO-8859-1, etc)." + \
              " The default value is '%s'" % DEFAULT_SYSTEM_ENCODING + ".",
         metavar="ENCODING",
+    )
+    parser.add_option(
+        "-s",
+        "--safe-entries",
+        dest="safeentries",
+        help="If a safe-entry file/dir is located within a path scanned " +\
+             "then the path is ignored. Use safe-entry files (or dirs) " +\
+             "to intentionally ignore directories of your choice that " +\
+             "reside in your video library. You can specify more then one " +\
+             "safe-entry by separating them with a comma (,). " +\
+             "The default value(s) are '%s'" % (DEFAULT_TIDYSAFE_ENTRIES) +\
+             ".",
+        metavar="ENTRIES",
     )
     parser.add_option(
         "-m",
@@ -616,6 +629,7 @@ if __name__ == "__main__":
     _encoding = options.encoding
     _video_minsize = options.video_minsize
     _clean = options.clean
+    _safeentries = options.safeentries
 
     if _clean:
         # By specifying a clean switch, we know for sure the user is
@@ -652,6 +666,9 @@ if __name__ == "__main__":
             )
             exit(EXIT_CODE.FAILURE)
 
+    if _safeentries:
+        script.set('SafeEntries', _safeentries)
+
     if _encoding:
         script.set('SystemEncoding', _encoding)
 
@@ -665,9 +682,6 @@ if __name__ == "__main__":
 
         if not _video_minsize:
             script.set('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)
-
-        # Force TidySafe Entries
-        script.set('TidySafeEntries', DEFAULT_TIDYSAFE_ENTRIES)
 
         # Force generic Video Extensions
         script.set('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
