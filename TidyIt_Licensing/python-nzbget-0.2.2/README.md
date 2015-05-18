@@ -61,13 +61,20 @@ The following are some of the functionality that is built in for you:
                 is used to build an nzb meta hash table which can be later
                 pushed to the server using push_dnzb().
 
+ * add_nzb()  - Using the built in API/RPC NZBGet supports, this
+                allows you to specify a path to an NZBFile which you want to
+                enqueue for downloading.
+
  * nzb_get()  - Retieves NZB Meta information previously stored.
 
  * nzb_unset()- Removes a variable previously set completely.
 
- * get_api()  - Retreive a simple API/RPC object built from the global
-                variables NZBGet passes into an external program when
-                called.
+ * get_statistics()- Using the built in API/RPC NZBGet supports, this
+                retrieves and returns the statistics in an easy to ready
+                dictionary  (_PostProcessScript_ only).
+
+ * get_logs() - Using the built in API/RPC NZBGet supports, this
+                retrieves and returns the latest logs.
 
  * get_files()- list all files in a specified directory as well as fetching
                 their details such as filesize, modified date, etc in an
