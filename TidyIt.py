@@ -53,7 +53,7 @@
 ##############################################################################
 ### OPTIONS                                                                ###
 
-#  TidyIt Mode (Enabled, Preview).
+#  TidyIt Mode (Enabled, Disabled).
 #
 # Identify the TidyIt Mode you want to run in:
 #  Enabled    - This enables the full capacity of this script. Actions are
@@ -68,7 +68,7 @@
 # enable it.  I take absolutely no responsibility for any loss of data
 # sustained.
 #
-# NOTE: that you should ALWAYS operate in 'Preview' mode first to confirm
+# NOTE: that you should ALWAYS operate in 'Disabled' mode first to confirm
 #       that the script doesn't cause irreversable damage to your media library.
 #
 #Mode=Disabled
