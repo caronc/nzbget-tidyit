@@ -287,7 +287,7 @@ class TidyItScript(SchedulerScript):
         """
         return re.sub('?', '.', re.sub('*', '.*', re_str))
 
-    def _remove(self, path, recursive=False):
+    def _remove(self, path):
         """
         A Simple wrapper to removing content in addition to logging it.
         """
@@ -479,10 +479,10 @@ class TidyItScript(SchedulerScript):
             break
 
         for entry in cannonfodder:
-            self._remove(entry, recursive=True)
+            self._remove(entry)
 
         for entry in tidylist:
-            self._remove(entry, recursive=True)
+            self._remove(entry)
 
         if len(dirents) + len(valid_paths):
             # We have a media directory worth keeping
