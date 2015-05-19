@@ -422,7 +422,6 @@ class TidyItScript(SchedulerScript):
                         if d not in ('..', '.') ]
 
         tidylist = []
-        cannonfodder = []
         while len(dirents):
 
             # Pop directory entry
@@ -444,7 +443,7 @@ class TidyItScript(SchedulerScript):
             if dirent in OS_METADATA_ENTRY:
                 # We can go ahead and remove this
                 if not len(valid_paths) and current_depth > 1:
-                    cannonfodder.append(fullpath)
+                    tidylist.append(fullpath)
                 continue
 
             if isdir(fullpath):
@@ -475,10 +474,19 @@ class TidyItScript(SchedulerScript):
                 continue
 
             if isfile(fullpath):
+                # Meta Information
+                found = False
+                for regex in MEDIAMETA_FILES_RE:
+                    if regex.search(fullpath):
+                        tidylist.append(fullpath)
+                        found = True
+                    if found:
+                        continue
+
                 # Match against extras as a way of safeguarding
                 found = False
-                for extra in extras:
-                    if extra.search(fullpath):
+                for regex in extras:
+                    if regex.search(fullpath):
                         tidylist.append(fullpath)
                         found = True
                         break
@@ -491,11 +499,11 @@ class TidyItScript(SchedulerScript):
             self.logger.debug('TidyFilters skipped from %s' % fullpath)
             break
 
-        for entry in cannonfodder:
-            self._remove(entry)
-
-        for entry in tidylist:
-            self._remove(entry)
+        if len(dirents) == 0:
+            # We only tidy the parent if all of it's children
+            # are gone
+            for entry in tidylist:
+                self._remove(entry)
 
         if len(dirents) + len(valid_paths):
             # We have a media directory worth keeping
