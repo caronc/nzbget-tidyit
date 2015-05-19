@@ -94,9 +94,9 @@
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
-# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.-thumb.jpg,.tbn,.nzb,.xml
+# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml
 #
-#VideoExtras=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.-thumb.jpg,.tbn,.nzb,.xml
+#VideoExtras=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml
 
 # Minimum Video Size.
 #
@@ -167,6 +167,7 @@ from os.path import basename
 from os.path import abspath
 from os.path import dirname
 from os.path import isdir
+from os.path import isfile
 from os import unlink
 from shutil import rmtree
 from stat import ST_MTIME
@@ -234,7 +235,7 @@ DEFAULT_VIDEO_EXTENSIONS = \
 
 # Some Default Environment Variables (used with CLI)
 DEFAULT_VIDEO_EXTRAS = \
-        '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.-thumb.jpg,.tbn,.nzb,.xml,.diz'
+        '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml,.diz'
 
 # Some Default TidySafe Variables (used with CLI)
 DEFAULT_TIDYSAFE_ENTRIES = \
@@ -473,6 +474,18 @@ class TidyItScript(SchedulerScript):
                     tidylist.append(fullpath)
                 continue
 
+            if isfile(fullpath):
+                # Match against extras as a way of safeguarding
+                found = False
+                for extra in extras:
+                    if extra.search(fullpath):
+                        tidylist.append(fullpath)
+                        found = True
+                        break
+
+                if found:
+                    continue
+
             # If we make it to the end, we scanned a file
             # that does not meet filtering criterias
             self.logger.debug('TidyFilters skipped from %s' % fullpath)
@@ -516,16 +529,29 @@ class TidyItScript(SchedulerScript):
 
         # Remaining Environment Variables
         video_extension = self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
-        video_extras = self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS)
         video_minsize = int(self.get('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)) * 1048576
         encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
         paths = self.parse_path_list(self.get('VideoPaths'))
+
+        # Extra Managing - build regular expressions based on input
+        video_extras = self.parse_list(self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS))
+        extras = []
+        for extra in video_extras:
+            _extra = re.sub('\*', '.*', re.sub('\?', '.', re.sub('\.', '\\.', extra)))
+            try:
+                extras.append(re.compile('%s$' % _extra, re.IGNORECASE))
+                self.logger.debug('Compiled regex "%s$"' % _extra)
+            except:
+                self.logger.error(
+                    'invalid regular expression: "%s$"' % _extra,
+                )
+                return {}
 
         for path in paths:
             self.tidy_library(
                 path,
                 extensions=video_extension,
-                extras=video_extras,
+                extras=extras,
                 minsize=video_minsize,
             )
 
