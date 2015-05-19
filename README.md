@@ -1,23 +1,28 @@
 TidyIt Scheduler Script
 ========================
-Point TidyIt to your video library and the script then looks after eliminating
-any empty directories. It also eliminates directories that simply no longer
-host video files. This script is especially useful when you use a third party
-application such as Plex or KODI (XBMC) to manage your library. Most third
-party applications that you tell to remove a video from your library leaves
-the directory that contained it and any meta information as well.  This script
-simply automatically cleans this up for you.
+TidyIt is a script designed to tidy up your video library; house cleaning
+one could say. It takes care of directories that once held video content
+but now is just either empty, or contains old meta data.
 
-Since this script has one primary function (to delete lingering content), it
-was intended to be pointed at a video library.  I will not be held responsible
-for any irrecoverable data loss you experience through the use of this script.
-The script intentionally operates in a  _log only_ mode with no parameters
-other then the directory(ies) to scan.  I encourage you to run the script
-as such and monitor what it itends to remove.  If your satisfied with the
-results, then rerun the script using its clean mode.
+This script is especially useful if you use a third party application such as
+Plex or KODI (XBMC) to manage your video library. Most third party applications
+that let remove a video from your library will _only_ remove the video itself.
+It will not however remove all the content that surrounds it.
 
-This script was intended to be an [NZBGet](http://nzbget.net) and _scheduling_
-script wrapper for _TidyIt_. However, it also works perfectly fine as a
+Since the primary focus of this script is to remove content from your media
+library, I will not be held responsible for any irrecoverable data loss you
+experience.  I can confirm the tool works for me, but that doesn't mean it
+will work for you. The good news is it's filled with safe guards!
+
+The script intentionally operates in a _log only_ mode by default unless you 
+explicitly specify it to run differently.  I encourage you to run the script
+in this _log only_ mode first anyway;  get an idea as to what it wants to do
+and the files it wants to remove. If your happy with it's decisions, you can
+flip a switch and the script will begin house cleaning everything it promised
+to you.
+
+This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
+script wrapper for _NZBGet_. However, it also works perfectly fine as a
 standalone script for others too.
 
 
