@@ -34,9 +34,9 @@
 #
 # Info about this TidyIt NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, May 15th, 2015.
+# Date: Tue, May 23th, 2015.
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.0.1
+# Script Version: 0.0.2
 #
 # A script that can tidy up your library by removing stale content
 # left over from removing video files from third party applications.
@@ -94,9 +94,9 @@
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
-# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml
+# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
 #
-#VideoExtras=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml
+#VideoExtras=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
 
 # Minimum Video Size.
 #
@@ -171,6 +171,8 @@ from os.path import isfile
 from os import unlink
 from shutil import rmtree
 from stat import ST_MTIME
+from stat import ST_SIZE
+
 # This is required if the below environment variables
 # are not included in your environment already
 import sys
@@ -195,6 +197,15 @@ MEDIAMETA_FILES_RE = (
     re.compile('^season[0-9]+(-(banner|poster))?\.(tbn|jpe?g)', re.IGNORECASE),
     re.compile('^tvshow.nfo', re.IGNORECASE),
     re.compile('^series.xml', re.IGNORECASE)
+)
+
+# Alike files are files that exist either next to the video file in question
+# In cases where the video file is missing, but it's alike file is found,
+# we can go ahead and clean up
+VIDEO_ALIKE_FILES_RE = (
+    # Subtitles
+    re.compile('^(?P<filename>.*)\.[A-Za-z]{2}\.srt$', re.IGNORECASE),
+    re.compile('^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|sub|idx)$', re.IGNORECASE),
 )
 
 # Meta Directory(ies)
@@ -235,7 +246,7 @@ DEFAULT_VIDEO_EXTENSIONS = \
 
 # Some Default Environment Variables (used with CLI)
 DEFAULT_VIDEO_EXTRAS = \
-        '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,-thumb.jpg,.tbn,.nzb,.xml,.diz'
+        '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml,.diz'
 
 # Some Default TidySafe Variables (used with CLI)
 DEFAULT_TIDYSAFE_ENTRIES = \
@@ -255,7 +266,7 @@ TIDY_CODES = (TidyCode.REMOVE, TidyCode.IGNORE)
 # is processed further.  This prevents the script from removing content
 # that may being processed 'now'.  All content must be older than this
 # to be considered. This value is represented in seconds.
-DEFAULT_MATCH_MINAGE = 120
+DEFAULT_MATCH_MINAGE = 0
 
 # The number of MegaBytes the detected video must be (with respect
 # to it's filesize). If it is less than this value, then it is
@@ -281,12 +292,19 @@ DEFAULT_SYSTEM_ENCODING = 'UTF-8'
 class TidyItScript(SchedulerScript):
     """A Media Library Tidying tool written for NZBGet
     """
+
     def _re_str(self, re_str):
         """
         Support custom RE provided by this script where * becomes .*
         and ? becomes .
         """
-        return re.sub('?', '.', re.sub('*', '.*', re_str))
+        return re.sub(
+            '\*', '.*', re.sub(
+            '\?', '.', re.sub(
+            '\)', '\\)', re.sub(
+            '\^', '\\^', re.sub(
+            '\.', '\\.', re_str,
+        )))))
 
     def _remove(self, path):
         """
@@ -340,49 +358,50 @@ class TidyItScript(SchedulerScript):
         # A depth of 0 is a 'safe' directory that will
         # never be removed
         current_depth = kwargs.get('__current_depth', 1)
+
         if current_depth == 1:
             self.logger.info('Scanning %s' % path)
 
         # Change to absolute path
         path = abspath(path)
-
         ref_time = datetime.now() - timedelta(seconds=DEFAULT_MATCH_MINAGE)
         # Check absolute path date (because we don't want to
         # process anything in it if it was touched recently)
-        if current_depth > 1:
-            try:
-                mtime = datetime.fromtimestamp(stat(path)[ST_MTIME])
-                if mtime >= ref_time:
-                    # We're done; directory is to new
-                    self.logger.debug('Skipping %s; modified less than %ds ago.' % (
-                        path,
-                        DEFAULT_MATCH_MINAGE,
-                    ))
-                    return TidyCode.IGNORE
-
-            except OSError:
-                # The directory suddently became inaccessible
-                self.logger.warning(
-                    'Directory %s became inaccessible.' % path,
-                )
-                # Since the directory is missing, return 0 letting
-                # recursively called situations go ahead and handle
-                # this directory
-                if current_depth > 1:
-                    return TidyCode.REMOVE
+        try:
+            stat_obj = stat(path)
+            mtime = datetime.fromtimestamp(stat_obj[ST_MTIME])
+            if mtime >= ref_time:
+                # We're done; directory is to new
+                self.logger.debug('Skipping %s; modified less than %ds ago.' % (
+                    path,
+                    DEFAULT_MATCH_MINAGE,
+                ))
                 return TidyCode.IGNORE
 
-            except ValueError:
-                # datetime could not parse the time correctly
-                # Newly created directories won't have this problem
-                # we can move along
-                pass
+        except OSError:
+            # The directory suddently became inaccessible
+            self.logger.warning(
+                'Path %s became inaccessible.' % path,
+            )
+            # Since the directory is missing, return 0 letting
+            # recursively called situations go ahead and handle
+            # this directory
+            return TidyCode.IGNORE
+
+        except ValueError:
+            # datetime could not parse the time correctly
+            # Newly created directories won't have this problem
+            # we can move along
+            pass
+
+        # Store Filesize
+        size = stat_obj[ST_SIZE]
 
         # First check for the goods; we may not have to do
         # further processing otherwise
         _valid_paths = self.get_files(
             path,
-            suffix_filter=extensions,
+            regex_filter=extensions,
             min_depth=1, max_depth=1,
             fullstats=True,
             skip_directories=False,
@@ -392,13 +411,13 @@ class TidyItScript(SchedulerScript):
         _valid_paths = dict([ (k, v) for (k, v) in _valid_paths.items() if \
                   v['filesize'] >= minsize]).keys()
 
-        # Apply Ignore list
-        valid_paths = list()
+        valid_paths = []
         while(len(_valid_paths)):
             _path = _valid_paths.pop()
-            if True in [ v.match(path) is not None \
+            if True in [ v.search(path) is not None \
                         for v in IGNORE_FILELIST_RE ]:
-                self.logger.debug('Skipping - Ignored file: %s' % basename(_path))
+                self.logger.debug(
+                    'Skipping - Ignored file: %s' % basename(_path))
                 continue
             valid_paths.append(_path)
         del _valid_paths
@@ -413,15 +432,12 @@ class TidyItScript(SchedulerScript):
             # toggle the current_depth to one (1).
             current_depth = 1
 
-            # Get Directory entries
-            dirents = [ d for d in listdir(path) \
-                          if d not in ('..', '.') and isdir(d) ]
-        else:
-            # Get All Entries
-            dirents = [ d for d in listdir(path) \
+        # Get All Entries
+        dirents = [ d for d in listdir(path) \
                         if d not in ('..', '.') ]
 
         tidylist = []
+        remove_if_empty = []
         while len(dirents):
 
             # Pop directory entry
@@ -433,24 +449,31 @@ class TidyItScript(SchedulerScript):
             # Check for TidySafe Content
             if dirent in self.tidysafe_entries:
                 # it was found; change the current depth
-                # to 1 to enforce a tidy safe environment
-                current_depth = 1
-                self.logger.debug('Ignoring %s; found %s' % (path, dirent))
-                continue
+                # we do not proceed any further
+                self.logger.debug('Safe entry %s found in %s' % (path, dirent))
+                return TidyCode.IGNORE
 
-            # METADATA is only cannon-fodder if it's determined
-            # the directory should be removed
             if dirent in OS_METADATA_ENTRY:
-                # We can go ahead and remove this
-                if not len(valid_paths) and current_depth > 1:
-                    tidylist.append(fullpath)
+                # METADATA is only cannon-fodder if it's determined
+                # the directory should be removed
+                remove_if_empty.append(fullpath)
                 continue
 
             if isdir(fullpath):
-                if dirent in METADIRS and len(valid_paths):
-                    # We skip this directory 'only if' we matched
-                    # a video file
-                    valid_paths.append(fullpath)
+                if dirent in METADIRS:
+                    if len(valid_paths) == 0:
+                        # Meta content is useless to us if the directory
+                        # is empty
+                        tidylist.append(fullpath)
+                        self.logger.debug('Planned Execution (metadata): %s' % fullpath)
+                    else:
+                        # Meta data exists, the best way to tackle this is
+                        # to append it to the current dirent list to be
+                        # processed
+                        dirents.extend([ join(dirent, d) for d in listdir(path) \
+                                    if d not in ('..', '.') ])
+
+                    # Next File
                     continue
 
                 # Recursively continue scanning
@@ -470,40 +493,117 @@ class TidyItScript(SchedulerScript):
                     valid_paths.append(fullpath)
 
                 elif code == TidyCode.REMOVE:
+                    # We got instructions to remove
+                    # the directory
                     tidylist.append(fullpath)
+                    self.logger.debug('Planned Execution (dir): %s' % fullpath)
+
+                # Next File
                 continue
 
             if isfile(fullpath):
+                # Match against extras as a way of safeguarding
+                if extensions.search(fullpath):
+                    if len(valid_paths) == 0:
+                        # We found a video file in a situation where
+                        # there were no 'valid' ones
+                        tidylist.append(fullpath)
+                        self.logger.debug('Planned Execution (invalid video): %s' % fullpath)
+                    # Next File
+                    continue
+
                 # Meta Information
                 found = False
                 for regex in MEDIAMETA_FILES_RE:
                     if regex.search(fullpath):
-                        tidylist.append(fullpath)
                         found = True
+                        # Break for() loop
+                        break
+                if found:
+                    # Add file to tidy if empty queue
+                    remove_if_empty.append(fullpath)
+                    # Next File
+                    continue
+
+                # Filesize
+                if size == 0:
+                    # Zero byte files are never good
+                    tidylist.append(fullpath)
+                    self.logger.debug('Planned Execution (zero byte file): %s' % fullpath)
+                    continue
+
+                if len(valid_paths) > 0:
+                    # Handle alike files
+                    found = False
+                    for afile in VIDEO_ALIKE_FILES_RE:
+                        match = afile.match(fullpath)
+                        if match:
+                            # We found a file to match for file in question
+                            # in order to decide it's fate
+                            for entry in valid_paths:
+                                # Match against a valid_path
+                                if basename(entry).\
+                                   startswith(
+                                       basename(match.group('filename'))):
+                                    # We have a good match!
+                                    self.logger.debug('%s belongs to %s' % (
+                                        dirent,
+                                        basename(entry),
+                                    ))
+                                    found = True
+                                    break
+                                # No match if we get here, check the current
+                                # directory name against the file:
+                                if basename(dirname(entry)).\
+                                   startswith(
+                                       basename(match.group('filename'))):
+                                    # We have a good match!
+                                    self.logger.debug('%s belongs to (dir) %s' % (
+                                        dirent,
+                                        basename(dirname(entry)),
+                                    ))
+                                    found = True
+                                    break
+
+                            if not found:
+                                # We didn't find anything on an
+                                # Alike match
+                                tidylist.append(fullpath)
+                                self.logger.debug('Planned Execution (no alike match): %s' % fullpath)
+                                # Trip Found flag since we've
+                                # aready handled this file
+                                found = True
+                                break
+
                     if found:
+                        # Next File since we handled or at
+                        # least matched an Alike file
                         continue
 
                 # Match against extras as a way of safeguarding
-                found = False
-                for regex in extras:
-                    if regex.search(fullpath):
-                        tidylist.append(fullpath)
-                        found = True
-                        break
-
-                if found:
+                elif extras.search(fullpath):
+                    self.logger.debug('Planned Execution (extra): %s' % fullpath)
+                    tidylist.append(fullpath)
+                    # Next File
                     continue
-
             # If we make it to the end, we scanned a file
             # that does not meet filtering criterias
-            self.logger.debug('TidyFilters skipped from %s' % fullpath)
+            self.logger.debug('Unhandled entry found: %s' % fullpath)
             break
 
-        if len(dirents) == 0:
-            # We only tidy the parent if all of it's children
-            # are gone
-            for entry in tidylist:
-                self._remove(entry)
+        if len(dirents) == 0 and len(valid_paths) == 0:
+            # we successfully handled every file/dir
+            # in the current directory and there were no
+            # valid files found in the list
+
+            # Append the remove_if_empty list in this
+            # scenario
+            tidylist.extend(remove_if_empty)
+
+        # We only tidy the parent if all of it's children
+        # are gone
+        for entry in tidylist:
+            self._remove(entry)
 
         if len(dirents) + len(valid_paths):
             # We have a media directory worth keeping
@@ -536,29 +636,44 @@ class TidyItScript(SchedulerScript):
         self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
 
         # Remaining Environment Variables
-        video_extension = self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
+        video_extensions = self.parse_list(self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS))
         video_minsize = int(self.get('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)) * 1048576
         encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
         paths = self.parse_path_list(self.get('VideoPaths'))
 
         # Extra Managing - build regular expressions based on input
         video_extras = self.parse_list(self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS))
-        extras = []
-        for extra in video_extras:
-            _extra = re.sub('\*', '.*', re.sub('\?', '.', re.sub('\.', '\\.', extra)))
-            try:
-                extras.append(re.compile('%s$' % _extra, re.IGNORECASE))
-                self.logger.debug('Compiled regex "%s$"' % _extra)
-            except:
-                self.logger.error(
-                    'invalid regular expression: "%s$"' % _extra,
-                )
-                return {}
+        if not len(video_extras):
+            _extras = '.*'
+        else:
+            _extras = '%s' % '|'.join(video_extras)
+            _extras = self._re_str(_extras)
+        try:
+            extras = re.compile('(%s)$' % _extras, re.IGNORECASE)
+            self.logger.debug('Compiled regex "(%s)$"' % _extras)
+        except:
+            self.logger.warning(
+                'Invalid regular expression: "(%s)$"' % _extras,
+            )
+
+        if not len(video_extensions):
+            self.logger.error('No video extensions were specified.')
+            return False
+
+        _extensions = r'%s' % '|'.join(video_extensions)
+        _extensions = self._re_str(_extensions)
+        try:
+            extensions = re.compile(r'(%s)$' % _extensions, re.IGNORECASE)
+            self.logger.debug('Compiled regex "(%s)$"' % _extensions)
+        except:
+            self.logger.warning(
+                'Invalid regular expression: "(%s)$"' % _extensions,
+            )
 
         for path in paths:
             self.tidy_library(
                 path,
-                extensions=video_extension,
+                extensions=extensions,
                 extras=extras,
                 minsize=video_minsize,
             )
