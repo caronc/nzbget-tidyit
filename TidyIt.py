@@ -194,7 +194,7 @@ from nzbget import SCRIPT_MODE
 # Meta Information
 MEDIAMETA_FILES_RE = (
     re.compile('^(backdrop|banner|fanart|folder|poster|season-specials-poster)\.jpe?g', re.IGNORECASE),
-    re.compile('^season[0-9]+(-(banner|poster))?\.(tbn|jpe?g)', re.IGNORECASE),
+    re.compile('^season([0-9]+)?(-(specials|banner|poster))?(-poster)?\.(tbn|jpe?g)', re.IGNORECASE),
     re.compile('^tvshow.nfo', re.IGNORECASE),
     re.compile('^series.xml', re.IGNORECASE)
 )
@@ -205,6 +205,7 @@ MEDIAMETA_FILES_RE = (
 VIDEO_ALIKE_FILES_RE = (
     # Subtitles
     re.compile('^(?P<filename>.*)\.[A-Za-z]{2}\.srt$', re.IGNORECASE),
+    re.compile('^(?P<filename>.*)-thumb\.(jpe?g)$', re.IGNORECASE),
     re.compile('^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|sub|idx)$', re.IGNORECASE),
 )
 
@@ -456,8 +457,39 @@ class TidyItScript(SchedulerScript):
             if dirent in OS_METADATA_ENTRY:
                 # METADATA is only cannon-fodder if it's determined
                 # the directory should be removed
+                self.logger.debug('Potential Execution (os meta data): %s' % fullpath)
                 remove_if_empty.append(fullpath)
                 continue
+
+            try:
+                stat_obj = stat(fullpath)
+                mtime = datetime.fromtimestamp(stat_obj[ST_MTIME])
+                if mtime >= ref_time:
+                    # We're done; directory is to new
+                    self.logger.debug('Skipping %s; modified less than %ds ago.' % (
+                        fullpath,
+                        DEFAULT_MATCH_MINAGE,
+                    ))
+                    continue
+
+            except OSError:
+                # The directory suddently became inaccessible
+                self.logger.warning(
+                    'Path %s became inaccessible.' % fullpath,
+                )
+                # Since the directory is missing, return 0 letting
+                # recursively called situations go ahead and handle
+                # this directory
+                continue
+
+            except ValueError:
+                # datetime could not parse the time correctly
+                # Newly created directories won't have this problem
+                # we can move along
+                pass
+
+            # Store Filesize
+            size = stat_obj[ST_SIZE]
 
             if isdir(fullpath):
                 if dirent in METADIRS:
@@ -470,7 +502,7 @@ class TidyItScript(SchedulerScript):
                         # Meta data exists, the best way to tackle this is
                         # to append it to the current dirent list to be
                         # processed
-                        dirents.extend([ join(dirent, d) for d in listdir(path) \
+                        dirents.extend([ join(dirent, d) for d in listdir(fullpath) \
                                     if d not in ('..', '.') ])
 
                     # Next File
@@ -515,12 +547,13 @@ class TidyItScript(SchedulerScript):
                 # Meta Information
                 found = False
                 for regex in MEDIAMETA_FILES_RE:
-                    if regex.search(fullpath):
+                    if regex.search(basename(dirent)):
                         found = True
                         # Break for() loop
                         break
                 if found:
                     # Add file to tidy if empty queue
+                    self.logger.debug('Potential Execution (meta data): %s' % fullpath)
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
@@ -582,8 +615,8 @@ class TidyItScript(SchedulerScript):
 
                 # Match against extras as a way of safeguarding
                 elif extras.search(fullpath):
-                    self.logger.debug('Planned Execution (extra): %s' % fullpath)
-                    tidylist.append(fullpath)
+                    self.logger.debug('Potential Execution (extra): %s' % fullpath)
+                    remove_if_empty.append(fullpath)
                     # Next File
                     continue
             # If we make it to the end, we scanned a file
