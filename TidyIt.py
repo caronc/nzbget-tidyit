@@ -107,6 +107,18 @@
 #
 #VideoMinSize=150
 
+# Minimum Processing Age.
+#
+# Identify the minimum age (in seconds) a file and/or directory can be
+# before it's processed.  This prevents this script from invading a directory
+# that may be being concurrently managed by another application around the
+# same time.  Anything older then 10 Min (600) is relatively safe.
+# The default is 3600 (1 hour) for an extra precautionary sake.
+# Set this value to zero (0) if you don't wan't to factor in
+# the age of the files and directories scanned.
+#
+#ProcessMinAge=3600
+
 # File extensions for video files.
 #
 # Only files with these extensions are considered a video. Extensions must
@@ -267,7 +279,7 @@ TIDY_CODES = (TidyCode.REMOVE, TidyCode.IGNORE)
 # is processed further.  This prevents the script from removing content
 # that may being processed 'now'.  All content must be older than this
 # to be considered. This value is represented in seconds.
-DEFAULT_MATCH_MINAGE = 0
+DEFAULT_MATCH_MINAGE = 3600
 
 # The number of MegaBytes the detected video must be (with respect
 # to it's filesize). If it is less than this value, then it is
@@ -336,7 +348,7 @@ class TidyItScript(SchedulerScript):
                 self.logger.info('PREVIEW ONLY: Remove DIRECTORY: %s' % path)
         return True
 
-    def tidy_library(self, path, extensions, extras, minsize, *args, **kwargs):
+    def tidy_library(self, path, extensions, extras, minsize, minage, *args, **kwargs):
         """
           - Recursively scan a library path and returns the number of files
             found in a directory.
@@ -365,7 +377,7 @@ class TidyItScript(SchedulerScript):
 
         # Change to absolute path
         path = abspath(path)
-        ref_time = datetime.now() - timedelta(seconds=DEFAULT_MATCH_MINAGE)
+        ref_time = datetime.now() - timedelta(seconds=minage)
         # Check absolute path date (because we don't want to
         # process anything in it if it was touched recently)
         try:
@@ -375,7 +387,7 @@ class TidyItScript(SchedulerScript):
                 # We're done; directory is to new
                 self.logger.debug('Skipping %s; modified less than %ds ago.' % (
                     path,
-                    DEFAULT_MATCH_MINAGE,
+                    minage,
                 ))
                 return TidyCode.IGNORE
 
@@ -451,7 +463,7 @@ class TidyItScript(SchedulerScript):
             if dirent in self.tidysafe_entries:
                 # it was found; change the current depth
                 # we do not proceed any further
-                self.logger.debug('Safe entry %s found in %s' % (path, dirent))
+                self.logger.debug('Safe entry %s found in %s' % (dirent, path))
                 return TidyCode.IGNORE
 
             if dirent in OS_METADATA_ENTRY:
@@ -466,11 +478,12 @@ class TidyItScript(SchedulerScript):
                 mtime = datetime.fromtimestamp(stat_obj[ST_MTIME])
                 if mtime >= ref_time:
                     # We're done; directory is to new
-                    self.logger.debug('Skipping %s; modified less than %ds ago.' % (
-                        fullpath,
-                        DEFAULT_MATCH_MINAGE,
+                    self.logger.debug('Skipping %s; %s was modified less than %ds ago.' % (
+                        path,
+                        dirent,
+                        minage,
                     ))
-                    continue
+                    return TidyCode.IGNORE
 
             except OSError:
                 # The directory suddently became inaccessible
@@ -514,6 +527,7 @@ class TidyItScript(SchedulerScript):
                     extensions=extensions,
                     extras=extras,
                     minsize=minsize,
+                    minage=minage,
                     # Internal
                     __current_depth=current_depth+1,
                 )
@@ -671,6 +685,7 @@ class TidyItScript(SchedulerScript):
         # Remaining Environment Variables
         video_extensions = self.parse_list(self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS))
         video_minsize = int(self.get('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)) * 1048576
+        minage = int(self.get('ProcessMinAge', DEFAULT_MATCH_MINAGE))
         encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
         paths = self.parse_path_list(self.get('VideoPaths'))
 
@@ -709,6 +724,7 @@ class TidyItScript(SchedulerScript):
                 extensions=extensions,
                 extras=extras,
                 minsize=video_minsize,
+                minage=minage,
             )
 
         # Nothing fetched, nothing gained or lost
@@ -767,6 +783,16 @@ if __name__ == "__main__":
         metavar="SIZE_IN_MB",
     )
     parser.add_option(
+        "-a",
+        "--min-age",
+        dest="minage",
+        help="Specify the minimum age a directory and/or file must be " + \
+        "before considering it for processing. This value " +\
+        "is interpreted in seconds and defaults to %d sec(s)." % \
+        DEFAULT_MATCH_MINAGE,
+        metavar="AGE_IN_SEC",
+    )
+    parser.add_option(
         "-c",
         "--clean",
         dest="clean",
@@ -809,6 +835,7 @@ if __name__ == "__main__":
     # already be resident in memory (environment variables).
     _encoding = options.encoding
     _video_minsize = options.video_minsize
+    _minage = options.minage
     _clean = options.clean
     _safeentries = options.safeentries
 
@@ -837,6 +864,16 @@ if __name__ == "__main__":
     if _clean:
         script.set('Mode', TIDYIT_MODE.ENABLED)
 
+    if _minage:
+        try:
+            _minage = str(abs(int(_minage)))
+            script.set('ProcessMinAge', _minage)
+        except (ValueError, TypeError):
+            script.logger.error(
+                'An invalid `minage` (%s) was specified.' % (_minage)
+            )
+            exit(EXIT_CODE.FAILURE)
+
     if _video_minsize:
         try:
             _video_minsize = str(abs(int(_video_minsize)))
@@ -863,6 +900,9 @@ if __name__ == "__main__":
 
         if not _video_minsize:
             script.set('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)
+
+        if not _minage:
+            script.set('ProcessMinAge', DEFAULT_MATCH_MINAGE)
 
         if not _safeentries:
             script.set('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES)
