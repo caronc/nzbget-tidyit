@@ -34,9 +34,9 @@
 #
 # Info about this TidyIt NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, May 23th, 2015.
+# Date: Sat, May 30th, 2015.
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.0.2
+# Script Version: 0.0.3
 #
 # A script that can tidy up your library by removing stale content
 # left over from removing video files from third party applications.
@@ -670,6 +670,7 @@ class TidyItScript(SchedulerScript):
             'Mode',
             'VideoPaths',
             'VideoMinSize',
+            'ProcessMinAge',
             'VideoExtensions',
             'SafeEntries',
             'VideoExtras',
