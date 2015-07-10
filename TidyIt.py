@@ -891,7 +891,7 @@ if __name__ == "__main__":
     if _encoding:
         script.set('SystemEncoding', _encoding)
 
-    if videopaths:
+    if not script.get('VideoPaths') and videopaths:
         if not _encoding:
             # Force defaults if not set
             script.set('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
