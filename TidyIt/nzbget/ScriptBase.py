@@ -2,7 +2,7 @@
 #
 # A base scripting class for NZBGet
 #
-# Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2015 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -207,6 +207,7 @@ from stat import ST_SIZE
 from os import stat
 
 from urlparse import urlparse
+from urlparse import parse_qsl
 from urllib import quote
 from urllib import unquote
 
@@ -548,7 +549,7 @@ PATH_DELIMITERS = r'([%s]+[%s;\|,\s]+|[;\|,\s%s]+[%s]+)' % (
 NZBGET_DATABASE_FILENAME = "nzbget/nzbget.db"
 
 # URL Indexing Table for returns via parse_url()
-VALID_URL_RE = re.compile(r'^[\s]*([^:\s]+):[/\\]*(.+)[\s]*$')
+VALID_URL_RE = re.compile(r'^[\s]*([^:\s]+):[/\\]*([^?]+)(\?(.+))?[\s]*$')
 VALID_HOST_RE = re.compile(r'^[\s]*([^:/\s]+)')
 VALID_QUERY_RE = re.compile(r'^(.*[/\\])([^/\\]*)$')
 
@@ -1138,11 +1139,16 @@ class ScriptBase(object):
             <schema>://<host>/<path>
             <schema>://<host>
 
-         The function returns the following tuple:
+         Argument parsing is also supported:
+            <schema>://<user>@<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<user>:<passwd>@<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<host>/<path>?key1=val&key2=val2
+            <schema>://<host>?key1=val&key2=val2
 
-           (schema, host, port, user, passwd, dir)
-
-         and returns 'None' if the content could not be extracted
+         The function returns a simple dictionary with all of
+         the parsed content within it and returns 'None' if the
+         content could not be extracted.
         """
 
         if not isinstance(url, basestring):
@@ -1168,14 +1174,24 @@ class ScriptBase(object):
             # The schema
             'schema': None,
             # The schema
-            'url': None
+            'url': None,
+            # The arguments passed in (the parsed query)
+            # This is in a dictionary of {'key': 'val', etc }
+            # qsd = Query String Dictionary
+            'qsd': {}
         }
 
+        qsdata = ''
         match = VALID_URL_RE.search(url)
         if match:
             # Extract basic results
             result['schema'] = match.group(1).lower().strip()
             host = match.group(2).strip()
+            try:
+                qsdata = match.group(4).strip()
+            except AttributeError:
+                # No qsdata
+                pass
         else:
             match = VALID_HOST_RE.search(url)
             if not match:
@@ -1205,6 +1221,16 @@ class ScriptBase(object):
             # No problem, there simply isn't any returned results
             # and therefore, no trailing slash
             pass
+
+        # Parse Query Arugments ?val=key&key=val
+        # while ensureing that all keys are lowercase
+        if qsdata:
+            result['qsd'] = dict([ (k.lower().strip(), v.strip()) \
+                                  for k, v in parse_qsl(
+                qsdata,
+                keep_blank_values=True,
+                strict_parsing=False,
+            )])
 
         if not result['fullpath']:
             # Default
@@ -1922,6 +1948,13 @@ class ScriptBase(object):
             # No logs
             return []
 
+        self.logger.error('Length "%d"' % len(
+            [ '%s - %s - %s' % (
+            datetime.fromtimestamp(int(entry['Time']))\
+                    .strftime('%Y-%m-%d %H:%M:%S'),
+            entry['Kind'], entry['Text'].strip(),
+        ) for entry in logs ][max_lines:]
+        ))
         # Return a simple ordered list of strings
         if oldest_first == True:
             return list(reversed([ '%s - %s - %s' % (
@@ -2081,7 +2114,7 @@ class ScriptBase(object):
                         self.logger.vdebug('Compiled regex "%s"' % f)
                     except:
                         self.logger.error(
-                            'invalid regular expression: "%s"' % f,
+                            'Invalid regular expression: "%s"' % f,
                         )
                         return {}
                 else:
@@ -2418,7 +2451,7 @@ class ScriptBase(object):
         Hence: parse_list('.mkv, .iso, .avi') becomes:
             ['.mkv', '.iso', '.avi']
 
-        Hence: parse_list('.mkv, .iso, .avi', ['.avi', '.mp4') becomes:
+        Hence: parse_list('.mkv, .iso, .avi', ['.avi', '.mp4']) becomes:
             ['.mkv', '.iso', '.avi', '.mp4']
 
         The parsing is very forgiving and accepts spaces, slashes, commas
@@ -2537,7 +2570,8 @@ class ScriptBase(object):
             # f  = short for False - False
             # n  = short for No or Never - False
             # ne  = short for Never - False
-            if arg.lower()[0:2] in ('ne', 'f', 'n', 'no', 'of', '0', 'fa'):
+            # di  = short for Disable(d) - False
+            if arg.lower()[0:2] in ('di', 'ne', 'f', 'n', 'no', 'of', '0', 'fa'):
                 return False
             # ye = yes - True
             # on = short for off - True
@@ -2545,7 +2579,8 @@ class ScriptBase(object):
             # tr = short for True - True
             # t  = short for True - True
             # al = short for Always - True
-            elif arg.lower()[0:2] in ('al', 't', 'y', 'ye', 'on', '1', 'tr'):
+            # en  = short for Enable(d) - True
+            elif arg.lower()[0:2] in ('en', 'al', 't', 'y', 'ye', 'on', '1', 'tr'):
                 return True
             # otherwise
             return default
