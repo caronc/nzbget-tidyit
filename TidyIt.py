@@ -469,7 +469,7 @@ class TidyItScript(SchedulerScript):
             if dirent in OS_METADATA_ENTRY:
                 # METADATA is only cannon-fodder if it's determined
                 # the directory should be removed
-                self.logger.debug('Potential Execution (os meta data): %s' % fullpath)
+                self.logger.debug('Potential removal (os meta data): %s' % fullpath)
                 remove_if_empty.append(fullpath)
                 continue
 
@@ -510,7 +510,7 @@ class TidyItScript(SchedulerScript):
                         # Meta content is useless to us if the directory
                         # is empty
                         tidylist.append(fullpath)
-                        self.logger.debug('Planned Execution (metadata): %s' % fullpath)
+                        self.logger.debug('Planned removal (metadata): %s' % fullpath)
                     else:
                         # Meta data exists, the best way to tackle this is
                         # to append it to the current dirent list to be
@@ -542,7 +542,7 @@ class TidyItScript(SchedulerScript):
                     # We got instructions to remove
                     # the directory
                     tidylist.append(fullpath)
-                    self.logger.debug('Planned Execution (dir): %s' % fullpath)
+                    self.logger.debug('Planned removal (dir): %s' % fullpath)
 
                 # Next File
                 continue
@@ -554,7 +554,7 @@ class TidyItScript(SchedulerScript):
                         # We found a video file in a situation where
                         # there were no 'valid' ones
                         tidylist.append(fullpath)
-                        self.logger.debug('Planned Execution (invalid video): %s' % fullpath)
+                        self.logger.debug('Planned removal (invalid video): %s' % fullpath)
                     # Next File
                     continue
 
@@ -567,7 +567,7 @@ class TidyItScript(SchedulerScript):
                         break
                 if found:
                     # Add file to tidy if empty queue
-                    self.logger.debug('Potential Execution (meta data): %s' % fullpath)
+                    self.logger.debug('Potential removal (meta data): %s' % fullpath)
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
@@ -576,7 +576,7 @@ class TidyItScript(SchedulerScript):
                 if size == 0:
                     # Zero byte files are never good
                     tidylist.append(fullpath)
-                    self.logger.debug('Planned Execution (zero byte file): %s' % fullpath)
+                    self.logger.debug('Planned removal (zero byte file): %s' % fullpath)
                     continue
 
                 if len(valid_paths) > 0:
@@ -616,7 +616,7 @@ class TidyItScript(SchedulerScript):
                                 # We didn't find anything on an
                                 # Alike match
                                 tidylist.append(fullpath)
-                                self.logger.debug('Planned Execution (no alike match): %s' % fullpath)
+                                self.logger.debug('Planned removal (no alike match): %s' % fullpath)
                                 # Trip Found flag since we've
                                 # aready handled this file
                                 found = True
@@ -629,7 +629,7 @@ class TidyItScript(SchedulerScript):
 
                 # Match against extras as a way of safeguarding
                 elif extras.search(fullpath):
-                    self.logger.debug('Potential Execution (extra): %s' % fullpath)
+                    self.logger.debug('Potentially removable (extra): %s' % fullpath)
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
