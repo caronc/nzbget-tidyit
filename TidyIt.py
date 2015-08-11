@@ -253,15 +253,12 @@ TIDYIT_MODES = (
 # Default in a Read-Only Mode; It's the safest way!
 TIDYIT_MODE_DEFAULT = TIDYIT_MODE.DISABLED
 
-# Some Default Environment Variables (used with CLI)
 DEFAULT_VIDEO_EXTENSIONS = \
         '.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso'
 
-# Some Default Environment Variables (used with CLI)
 DEFAULT_VIDEO_EXTRAS = \
         '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml,.diz'
 
-# Some Default TidySafe Variables (used with CLI)
 DEFAULT_TIDYSAFE_ENTRIES = \
         '.tidysafe'
 
@@ -635,8 +632,11 @@ class TidyItScript(SchedulerScript):
                     continue
             # If we make it to the end, we scanned a file
             # that does not meet filtering criterias
-            self.logger.debug('Unhandled entry found: %s' % fullpath)
-            break
+
+            # This is like a safe file.  We don't know what it is; so we don't
+            # want to avoid destroying something we shouldn't
+            self.logger.debug('Unhandled entry found: %s (safe-guarded)' % fullpath)
+            return TidyCode.IGNORE
 
         if len(dirents) == 0 and len(valid_paths) == 0:
             # we successfully handled every file/dir
