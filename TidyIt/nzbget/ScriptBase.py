@@ -1948,13 +1948,6 @@ class ScriptBase(object):
             # No logs
             return []
 
-        self.logger.error('Length "%d"' % len(
-            [ '%s - %s - %s' % (
-            datetime.fromtimestamp(int(entry['Time']))\
-                    .strftime('%Y-%m-%d %H:%M:%S'),
-            entry['Kind'], entry['Text'].strip(),
-        ) for entry in logs ][max_lines:]
-        ))
         # Return a simple ordered list of strings
         if oldest_first == True:
             return list(reversed([ '%s - %s - %s' % (
