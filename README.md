@@ -76,12 +76,21 @@ Options:
                         specify more then one safe-entry by separating them
                         with a comma (,). The default value(s) are
                         '.tidysafe'.
+  -t ENTRIES, --always-trash=ENTRIES
+                        Identifiy any file extensions you wish to always trash
+                        if matched. By default this is not set.You can specify
+                        more then one trash entry by separating them with a
+                        comma (,).
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
                         Specify the minimum size a video must be before it's
                         treated as part of your collection. This value is used
                         to diffentiate between video file and samples files.
                         This value is interpreted in MB (Megabytes) and
                         defaults to 150 MB.
+  -a AGE_IN_SEC, --min-age=AGE_IN_SEC
+                        Specify the minimum age a directory and/or file must
+                        be before considering it for processing. This value is
+                        interpreted in seconds and defaults to 3600 sec(s).
   -c, --clean           Unless this switch is specified, this script only runs
                         in a log only mode (a dry-run) allowing you to see the
                         actions the script would have otherwise performed.
