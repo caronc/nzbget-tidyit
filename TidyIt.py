@@ -84,19 +84,16 @@
 #
 # Identify the files extensions you want to always throw away if matched.
 # This is intentionally left blank because the script works fine without it.
-# But if your video library gets populated with content you'd rather
-# not have around, you can identify it here. Use a comma to delimit one
-# entry from the next; for example (the following would delete most archives
-# found in your media library):
-#     .zip,.r??,.z7,.0??,.1??,.2??,.3??
+# But if your video library gets populated with content you'd prefer
+# not have around, you can identify it here.
 #
-# You can use a 'question mark' (?) to identify single placeholders for
+# Use a 'question mark' (?) to identify single placeholders for
 # printable characters (this does not include white space). This list is not
 # case-sensitive. You can also use a 'asterix' (*) to identify the regular
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
-# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
+# Example=.zip,.r??,.z7,.0??,.1??,.2??,.3??
 #
 #AlwaysTrash=
 
