@@ -53,25 +53,32 @@
 ##############################################################################
 ### OPTIONS                                                                ###
 
-#  TidyIt Mode (Enabled, Disabled).
+#  TidyIt Mode (Preview, Delete, Move).
 #
 # Identify the TidyIt Mode you want to run in:
-#  Enabled    - This enables the full capacity of this script. Actions are
-#               still always logged eve with this mode set.
-#  Disabled   - Log all planned tidy actions but do not actually do perform
+#  Preview    - Log all planned TidyIt actions, but do not actually perform
 #               them. This is the absolute safest mode to survey things with
 #               first.
 #
-# This script's primary function is to remove content.
-# After you configure it the way you want, you can use the logging to
-# determine if it is doing what you expect it to. Only then should you
-# enable it.  I take absolutely no responsibility for any loss of data
-# sustained.
+#  Delete     - This handles all of the actual tidying of content. Items
+#               flagged to be handled are removed in this mode.
 #
-# NOTE: that you should ALWAYS operate in 'Disabled' mode first to confirm
+#  Trash      - This mode is similar to Delete except content is sent to
+#               the Recycle Bin (Windows), and or Trash (Mac & Linux based).
+#
+# This script's primary function is to handle the content you've identified to
+# be tidied in some way or another. Ideally you'll set this script in Preview
+# mode and use the logs to determine your level of satisifcation. Once you're
+# comfortable with how it's behaving, you can flip the mode to one that will
+# actually be more productive (basically any mode but Preview).
+#
+# I take absolutely no responsibility for any loss of data sustained to your
+# system from ill configuration by your part.
+#
+# NOTE: that you should ALWAYS operate in 'Preview' mode first to confirm
 #       that the script doesn't cause irreversable damage to your media library.
 #
-#Mode=Disabled
+#Mode=Preview
 
 # Always Trash File Extensions.
 #
@@ -223,6 +230,9 @@ from nzbget import SchedulerScript
 from nzbget import EXIT_CODE
 from nzbget import SCRIPT_MODE
 
+# Trash Function
+from send2trash import send2trash
+
 # Meta Information
 MEDIAMETA_FILES_RE = (
     re.compile('^(backdrop|banner|fanart|folder|poster|season-specials-poster)\.jpe?g', re.IGNORECASE),
@@ -262,16 +272,21 @@ IGNORE_FILELIST_RE = (
 )
 
 class TIDYIT_MODE(object):
-    ENABLED = "Enabled"
-    DISABLED = "Disabled"
+    # Delete content set to by Tidied
+    DELETE = "Delete"
+    # Attempt to place content into the recycle bin and/or trash bin
+    TRASH = "Trash"
+    # Do nothing; just preview what was intended to be tidied
+    PREVIEW = "Preview"
 
 # TidyIt Modes
 TIDYIT_MODES = (
-    TIDYIT_MODE.ENABLED,
-    TIDYIT_MODE.DISABLED,
+    TIDYIT_MODE.DELETE,
+    TIDYIT_MODE.PREVIEW,
+    TIDYIT_MODE.TRASH,
 )
 # Default in a Read-Only Mode; It's the safest way!
-TIDYIT_MODE_DEFAULT = TIDYIT_MODE.DISABLED
+TIDYIT_MODE_DEFAULT = TIDYIT_MODE.PREVIEW
 
 DEFAULT_VIDEO_EXTENSIONS = \
         '.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso'
@@ -343,26 +358,45 @@ class TidyItScript(SchedulerScript):
 
         if not isdir(path):
             # File Removal
-            if self.mode == TIDYIT_MODE.ENABLED:
+            if self.mode == TIDYIT_MODE.DELETE:
                 try:
                     unlink(path)
                     self.logger.info('Removed FILE: %s' % path)
                 except:
                     self.logger.error('Could not removed FILE: %s' % path)
                     return False
+
+            elif self.mode == TIDYIT_MODE.TRASH:
+                try:
+                    send2trash(path)
+                    self.logger.info('Trashed FILE: %s' % path)
+                except:
+                    self.logger.error('Could not trash FILE: %s' % path)
+                    return False
+
             else:
-                self.logger.info('PREVIEW ONLY: Remove FILE: %s' % path)
+                self.logger.info('PREVIEW ONLY: Handle FILE: %s' % path)
         else:
             # Directory Removal
-            if self.mode == TIDYIT_MODE.ENABLED:
+            if self.mode == TIDYIT_MODE.DELETE:
                 try:
                     rmtree(path)
                     self.logger.info('Removed DIRECTORY: %s' % path)
                 except:
-                    self.logger.error('Could not removed DIRECTORY: %s' % path)
+                    self.logger.error('Could not remove DIRECTORY: %s' % path)
                     return False
+
+            elif self.mode == TIDYIT_MODE.TRASH:
+                try:
+                    send2trash(path)
+                    self.logger.info('Trashed DIRECTORY: %s' % path)
+                except:
+                    self.logger.error('Could not trash DIRECTORY: %s' % path)
+                    return False
+
             else:
-                self.logger.info('PREVIEW ONLY: Remove DIRECTORY: %s' % path)
+                self.logger.info('PREVIEW ONLY: Handle DIRECTORY: %s' % path)
+
         return True
 
     def tidy_library(self, path, extensions, extras, minsize, minage, *args, **kwargs):
@@ -922,7 +956,7 @@ if __name__ == "__main__":
     )
 
     if _clean:
-        script.set('Mode', TIDYIT_MODE.ENABLED)
+        script.set('Mode', TIDYIT_MODE.DELETE)
 
     if _minage:
         try:
