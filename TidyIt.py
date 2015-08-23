@@ -73,6 +73,26 @@
 #
 #Mode=Disabled
 
+# Always Trash File Extensions.
+#
+# Identify the files extensions you want to always throw away if matched.
+# This is intentionally left blank because the script works fine without it.
+# But if your video library gets populated with content you'd rather
+# not have around, you can identify it here. Use a comma to delimit one
+# entry from the next; for example (the following would delete most archives
+# found in your media library):
+#     .zip,.r??,.z7,.0??,.1??,.2??,.3??
+#
+# You can use a 'question mark' (?) to identify single placeholders for
+# printable characters (this does not include white space). This list is not
+# case-sensitive. You can also use a 'asterix' (*) to identify the regular
+# expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
+# writing .nfo below.  the * is automatically implied at the front. Use a
+# comma (,) and/or space to separate more then one entry.
+# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
+#
+#AlwaysTrash=
+
 # Video Libraries to Scan
 #
 # Specify any number of directories this script can (recursively) check
@@ -545,6 +565,15 @@ class TidyItScript(SchedulerScript):
                 continue
 
             if isfile(fullpath):
+                # Match against always trash items (if configured to do so)
+                if self.always_trash is not None and self.always_trash.search(fullpath):
+                    # we found a file we flagged to always be trashed when
+                    # matched
+                    tidylist.append(fullpath)
+                    self.logger.debug('Planned removal (always trash): %s' % fullpath)
+                    # Next File
+                    continue
+
                 # Match against extras as a way of safeguarding
                 if extensions.search(fullpath):
                     if len(valid_paths) == 0:
@@ -669,6 +698,7 @@ class TidyItScript(SchedulerScript):
         if not self.validate(keys=(
             'Mode',
             'VideoPaths',
+            'AlwaysTrash',
             'VideoMinSize',
             'ProcessMinAge',
             'VideoExtensions',
@@ -681,6 +711,7 @@ class TidyItScript(SchedulerScript):
 
         # Fix mode to object (self.*)
         self.mode = self.get('Mode', TIDYIT_MODE_DEFAULT)
+        # Fix tidy-safe entries to object (self.*)
         self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
 
         # Remaining Environment Variables
@@ -689,6 +720,7 @@ class TidyItScript(SchedulerScript):
         minage = int(self.get('ProcessMinAge', DEFAULT_MATCH_MINAGE))
         encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
         paths = self.parse_path_list(self.get('VideoPaths'))
+        trash = self.parse_path_list(self.get('AlwaysTrash'))
 
         # Extra Managing - build regular expressions based on input
         video_extras = self.parse_list(self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS))
@@ -718,6 +750,22 @@ class TidyItScript(SchedulerScript):
             self.logger.warning(
                 'Invalid regular expression: "(%s)$"' % _extensions,
             )
+
+        # Trash Managing - build regular expressions based on input
+        always_trash_entries = self.parse_list(self.get('AlwaysTrash', []))
+        # By Default; Always Trash is Disabled (Safer this way)
+        self.always_trash = None
+        if len(always_trash_entries):
+            _always_trash = '%s' % '|'.join(always_trash_entries)
+            _always_trash = self._re_str(_always_trash)
+            try:
+                self.always_trash = re.compile('(%s)$' % _always_trash, re.IGNORECASE)
+                self.logger.debug('Compiled "Always Trash" regex "(%s)$"' % _always_trash)
+            except:
+                # Disable option (Safer this way)
+                self.logger.warning(
+                    'Invalid "Always Trash" regular expression: "(%s)$"' % _always_trash,
+                )
 
         for path in paths:
             self.tidy_library(
@@ -770,6 +818,16 @@ if __name__ == "__main__":
              "safe-entry by separating them with a comma (,). " +\
              "The default value(s) are '%s'" % (DEFAULT_TIDYSAFE_ENTRIES) +\
              ".",
+        metavar="ENTRIES",
+    )
+    parser.add_option(
+        "-t",
+        "--always-trash",
+        dest="alwaystrash",
+        help="Identifiy any file extensions you wish to always trash " +\
+             "if matched. By default this is not set." +\
+             "You can specify more then one " +\
+             "trash entry by separating them with a comma (,). ",
         metavar="ENTRIES",
     )
     parser.add_option(
@@ -839,6 +897,7 @@ if __name__ == "__main__":
     _minage = options.minage
     _clean = options.clean
     _safeentries = options.safeentries
+    _alwaystrash = options.alwaystrash
 
     if _clean:
         # By specifying a clean switch, we know for sure the user is
@@ -888,6 +947,9 @@ if __name__ == "__main__":
     if _safeentries:
         script.set('SafeEntries', _safeentries)
 
+    if _alwaystrash:
+        script.set('AlwaysTrash', _alwaystrash)
+
     if _encoding:
         script.set('SystemEncoding', _encoding)
 
@@ -907,6 +969,9 @@ if __name__ == "__main__":
 
         if not _safeentries:
             script.set('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES)
+
+        if not _alwaystrash:
+            script.set('AlwaysTrash', '')
 
         # Force generic Video Extensions
         script.set('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
