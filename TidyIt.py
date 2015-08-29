@@ -53,7 +53,7 @@
 ##############################################################################
 ### OPTIONS                                                                ###
 
-#  TidyIt Mode (Preview, Delete, Move).
+#  TidyIt Mode (Preview, Delete, Trash).
 #
 # Identify the TidyIt Mode you want to run in:
 #  Preview    - Log all planned TidyIt actions, but do not actually perform
@@ -742,6 +742,10 @@ class TidyItScript(SchedulerScript):
 
         # Fix mode to object (self.*)
         self.mode = self.get('Mode', TIDYIT_MODE_DEFAULT)
+        if self.mode not in TIDYIT_MODES:
+            self.logger.error('The specified mode "%s" is not supported.' % self.mode)
+            return False
+
         # Fix tidy-safe entries to object (self.*)
         self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
 
@@ -892,6 +896,14 @@ if __name__ == "__main__":
         "script would have otherwise performed.",
     )
     parser.add_option(
+        "-r",
+        "--recycle",
+        dest="recycle",
+        action="store_true",
+        help="This is the less destructive version of --clean (-c) and " +\
+        "moves content to the Recycle Bin (Windows) or Trash (Mac/Linux).",
+    )
+    parser.add_option(
         "-L",
         "--logfile",
         dest="logfile",
@@ -927,12 +939,13 @@ if __name__ == "__main__":
     _video_minsize = options.video_minsize
     _minage = options.minage
     _clean = options.clean
+    _recycle = options.recycle
     _safeentries = options.safeentries
     _alwaystrash = options.alwaystrash
 
-    if _clean:
-        # By specifying a clean switch, we know for sure the user is
-        # running this as a standalone script,
+    if _clean or _recycle:
+        # By specifying a clean (or recycle) switch, we know for sure the user
+        # is running this as a standalone script,
 
         # Setting Script Mode to NONE forces main() to execute
         # which is where the code for the cli() is defined
@@ -952,8 +965,20 @@ if __name__ == "__main__":
         script_mode=script_mode,
     )
 
+    if _clean and _recycle:
+        # these to commands can't coexist together; it's either
+        # one or the other.
+        script.logger.error(
+            "Providing both a 'clean' and 'recycle' option has caused " +\
+            "us some confusion; aborting.",
+        )
+        exit(EXIT_CODE.FAILURE)
+
     if _clean:
         script.set('Mode', TIDYIT_MODE.DELETE)
+
+    elif _recycle:
+        script.set('Mode', TIDYIT_MODE.TRASH)
 
     if _minage:
         try:
@@ -989,7 +1014,7 @@ if __name__ == "__main__":
             # Force defaults if not set
             script.set('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
 
-        if not _clean:
+        if not (_clean or _recycle):
             script.set('Mode', TIDYIT_MODE_DEFAULT)
 
         if not _video_minsize:
