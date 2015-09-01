@@ -23,9 +23,9 @@
 ##############################################################################
 ### NZBGET SCHEDULER SCRIPT                                                ###
 
-# Tidy It.
-#
-# The script searches your media libraries and performs house keeping on it.
+# The script searches your media libraries and performs house keeping on it by
+# eliminating any meta files that have become wasted disk space since they are
+# no longer referenced.
 #
 # It's quite simple really, a lot of people use other tools to work with their
 # content such as XBMC, KODI, etc which can remove shows you don't like, etc.
@@ -59,10 +59,8 @@
 #  Preview    - Log all planned TidyIt actions, but do not actually perform
 #               them. This is the absolute safest mode to survey things with
 #               first.
-#
 #  Delete     - This handles all of the actual tidying of content. Items
 #               flagged to be handled are removed in this mode.
-#
 #  Move       - This mode is similar to Delete except content is moved to
 #               the location you specify. This allows you to preview/review
 #               the content and manually remove it yourself on your own.
@@ -111,7 +109,7 @@
 #
 #AlwaysTrash=
 
-# Video Libraries to Scan
+# Video Libraries to Scan.
 #
 # Specify any number of directories this script can (recursively) check
 # delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc
