@@ -53,7 +53,7 @@
 ##############################################################################
 ### OPTIONS                                                                ###
 
-#  TidyIt Mode (Preview, Delete, Trash).
+#  TidyIt Mode (Preview, Delete, Move).
 #
 # Identify the TidyIt Mode you want to run in:
 #  Preview    - Log all planned TidyIt actions, but do not actually perform
@@ -63,8 +63,11 @@
 #  Delete     - This handles all of the actual tidying of content. Items
 #               flagged to be handled are removed in this mode.
 #
-#  Trash      - This mode is similar to Delete except content is sent to
-#               the Recycle Bin (Windows), and or Trash (Mac & Linux based).
+#  Move       - This mode is similar to Delete except content is moved to
+#               the location you specify. This allows you to preview/review
+#               the content and manually remove it yourself on your own.
+#               The content moved preserves the directory structure it was
+#               found as (relative to the search path you specified).
 #
 # This script's primary function is to handle the content you've identified to
 # be tidied in some way or another. Ideally you'll set this script in Preview
@@ -79,6 +82,17 @@
 #       that the script doesn't cause irreversable damage to your media library.
 #
 #Mode=Preview
+
+
+# Move Path.
+#
+# This argument is only required if you set your Mode to 'Move'. Identify
+# the path you want to move handled content to. If no path is specified then
+# the 'Move' mode falls gracefully back into the 'Preview' mode. The Tildy
+# (~) can be used to expand the path in efforts to support the home
+# directory
+#
+#MovePath=~/Desktop/TidyIt.Trash
 
 # Always Trash File Extensions.
 #
@@ -204,8 +218,14 @@ from os.path import abspath
 from os.path import dirname
 from os.path import isdir
 from os.path import isfile
+from os.path import exists
+from os import sep as os_separator
+
 from os import unlink
+from os import makedirs
 from shutil import rmtree
+from shutil import move
+
 from stat import ST_MTIME
 from stat import ST_SIZE
 
@@ -226,9 +246,8 @@ from nzbget import SKIP_DIRECTORIES
 from nzbget import SchedulerScript
 from nzbget import EXIT_CODE
 from nzbget import SCRIPT_MODE
-
-# Trash Function
-from send2trash import send2trash
+from nzbget.Utils import tidy_path
+from nzbget.Utils import os_path_split
 
 # Meta Information
 MEDIAMETA_FILES_RE = (
@@ -271,8 +290,8 @@ IGNORE_FILELIST_RE = (
 class TIDYIT_MODE(object):
     # Delete content set to by Tidied
     DELETE = "Delete"
-    # Attempt to place content into the recycle bin and/or trash bin
-    TRASH = "Trash"
+    # Move content to the path specified instead of deleting it
+    MOVE = "Move"
     # Do nothing; just preview what was intended to be tidied
     PREVIEW = "Preview"
 
@@ -280,7 +299,7 @@ class TIDYIT_MODE(object):
 TIDYIT_MODES = (
     TIDYIT_MODE.DELETE,
     TIDYIT_MODE.PREVIEW,
-    TIDYIT_MODE.TRASH,
+    TIDYIT_MODE.MOVE,
 )
 # Default in a Read-Only Mode; It's the safest way!
 TIDYIT_MODE_DEFAULT = TIDYIT_MODE.PREVIEW
@@ -293,6 +312,9 @@ DEFAULT_VIDEO_EXTRAS = \
 
 DEFAULT_TIDYSAFE_ENTRIES = \
         '.tidysafe'
+
+# Always default to nothing (forcing it back to a preview mode)
+DEFAULT_MOVE_PATH = ''
 
 class TidyCode(object):
     """ Codes returned by tidy_library() function that provide instructions
@@ -348,9 +370,9 @@ class TidyItScript(SchedulerScript):
             '\.', '\\.', re_str,
         )))))
 
-    def _remove(self, path):
+    def _handle(self, path, depth):
         """
-        A Simple wrapper to removing content in addition to logging it.
+        A Simple wrapper to handle content in addition to logging it.
         """
 
         if not isdir(path):
@@ -363,12 +385,41 @@ class TidyItScript(SchedulerScript):
                     self.logger.error('Could not removed FILE: %s' % path)
                     return False
 
-            elif self.mode == TIDYIT_MODE.TRASH:
+            elif self.mode == TIDYIT_MODE.MOVE:
+                # Using the depth, we need to determine the path we're
+                # generating for the new file
+                tmp_fullpath = join(
+                    self.move_path,
+                    os_separator.join(os_path_split(path)[-depth:]),
+                )
+
+                # Handle duplicate files:
+                if exists(tmp_fullpath):
+                    index = 1
+                    _new_path = '%s.%.5d' % (tmp_fullpath, index)
+                    while exists(_new_path):
+                        index +=1
+                        _new_path = '%s.%.5d' % (tmp_fullpath, index)
+                    # Store our new path
+                    tmp_fullpath = _new_path
+
+                tmp_dirname = dirname(tmp_fullpath)
+                if not isdir(tmp_dirname):
+                    try:
+                        makedirs(tmp_dirname)
+                    except Exception, e:
+                        self.logger.error(
+                            'Could not create move path: %s' % tmp_dirname,
+                        )
+                        self.logger.debug('makedirs() Exception %s' % str(e))
+
+                # Now create our directory path if it doesn't exist
                 try:
-                    send2trash(path)
-                    self.logger.info('Trashed FILE: %s' % path)
-                except:
-                    self.logger.error('Could not trash FILE: %s' % path)
+                    move(path, tmp_fullpath)
+                    self.logger.info('Moved FILE: %s' % path)
+                except Exception, e:
+                    self.logger.error('Could not move FILE: %s' % path)
+                    self.logger.debug('Move Exception %s' % str(e))
                     return False
 
             else:
@@ -383,13 +434,47 @@ class TidyItScript(SchedulerScript):
                     self.logger.error('Could not remove DIRECTORY: %s' % path)
                     return False
 
-            elif self.mode == TIDYIT_MODE.TRASH:
-                try:
-                    send2trash(path)
-                    self.logger.info('Trashed DIRECTORY: %s' % path)
-                except:
-                    self.logger.error('Could not trash DIRECTORY: %s' % path)
-                    return False
+            elif self.mode == TIDYIT_MODE.MOVE:
+                # Using the depth, we need to determine the path we're
+                # generating for the new file
+                tmp_fullpath = join(
+                    self.move_path,
+                    os_separator.join(os_path_split(path)[-depth:]),
+                )
+
+                if isfile(tmp_fullpath):
+                    # Directories are usually already handled because
+                    # they contain files and have already been created and
+                    # set up... but just to be bulletproof; this will handle
+                    # situations where a file exists where a directory should
+                    # be.
+                    index = 1
+                    _new_path = '%s.%.5d' % (tmp_fullpath, index)
+                    while isfile(_new_path):
+                        index +=1
+                        _new_path = '%s.%.5d' % (tmp_fullpath, index)
+                    # Store our new path
+                    tmp_fullpath = _new_path
+
+                tmp_dirname = dirname(tmp_fullpath)
+                if not isdir(tmp_dirname):
+                    try:
+                        makedirs(tmp_dirname)
+                    except Exception, e:
+                        self.logger.error(
+                            'Could not create move path: %s' % tmp_dirname,
+                        )
+                        self.logger.debug('makedirs() Exception %s' % str(e))
+
+                if not isdir(tmp_fullpath):
+                    # Now create our directory path if it doesn't exist
+                    try:
+                        move(path, tmp_fullpath)
+                        self.logger.info('Moved DIRECTORY: %s' % path)
+                    except Exception, e:
+                        self.logger.error('Could not move DIRECTORY: %s' % path)
+                        self.logger.debug('Move Exception %s' % str(e))
+                        return False
 
             else:
                 self.logger.info('PREVIEW ONLY: Handle DIRECTORY: %s' % path)
@@ -517,7 +602,7 @@ class TidyItScript(SchedulerScript):
             if dirent in OS_METADATA_ENTRY:
                 # METADATA is only cannon-fodder if it's determined
                 # the directory should be removed
-                self.logger.debug('Potential removal (os meta data): %s' % fullpath)
+                self.logger.debug('Potential handling (os meta data): %s' % fullpath)
                 remove_if_empty.append(fullpath)
                 continue
 
@@ -558,7 +643,7 @@ class TidyItScript(SchedulerScript):
                         # Meta content is useless to us if the directory
                         # is empty
                         tidylist.append(fullpath)
-                        self.logger.debug('Planned removal (metadata): %s' % fullpath)
+                        self.logger.debug('Planned handling (metadata): %s' % fullpath)
                     else:
                         # Meta data exists, the best way to tackle this is
                         # to append it to the current dirent list to be
@@ -590,7 +675,7 @@ class TidyItScript(SchedulerScript):
                     # We got instructions to remove
                     # the directory
                     tidylist.append(fullpath)
-                    self.logger.debug('Planned removal (dir): %s' % fullpath)
+                    self.logger.debug('Planned handling (dir): %s' % fullpath)
 
                 # Next File
                 continue
@@ -601,7 +686,7 @@ class TidyItScript(SchedulerScript):
                     # we found a file we flagged to always be trashed when
                     # matched
                     tidylist.append(fullpath)
-                    self.logger.debug('Planned removal (always trash): %s' % fullpath)
+                    self.logger.debug('Planned handling (marked for trash): %s' % fullpath)
                     # Next File
                     continue
 
@@ -611,7 +696,7 @@ class TidyItScript(SchedulerScript):
                         # We found a video file in a situation where
                         # there were no 'valid' ones
                         tidylist.append(fullpath)
-                        self.logger.debug('Planned removal (invalid video): %s' % fullpath)
+                        self.logger.debug('Planned handling (invalid video): %s' % fullpath)
                     # Next File
                     continue
 
@@ -624,7 +709,7 @@ class TidyItScript(SchedulerScript):
                         break
                 if found:
                     # Add file to tidy if empty queue
-                    self.logger.debug('Potential removal (meta data): %s' % fullpath)
+                    self.logger.debug('Potential handling (meta data): %s' % fullpath)
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
@@ -633,7 +718,7 @@ class TidyItScript(SchedulerScript):
                 if size == 0:
                     # Zero byte files are never good
                     tidylist.append(fullpath)
-                    self.logger.debug('Planned removal (zero byte file): %s' % fullpath)
+                    self.logger.debug('Planned handling (zero byte file): %s' % fullpath)
                     continue
 
                 if len(valid_paths) > 0:
@@ -673,7 +758,7 @@ class TidyItScript(SchedulerScript):
                                 # We didn't find anything on an
                                 # Alike match
                                 tidylist.append(fullpath)
-                                self.logger.debug('Planned removal (no alike match): %s' % fullpath)
+                                self.logger.debug('Planned handling (no alike match): %s' % fullpath)
                                 # Trip Found flag since we've
                                 # aready handled this file
                                 found = True
@@ -686,7 +771,7 @@ class TidyItScript(SchedulerScript):
 
                 # Match against extras as a way of safeguarding
                 elif extras.search(fullpath):
-                    self.logger.debug('Potentially removable (extra): %s' % fullpath)
+                    self.logger.debug('Potentially handling (extra): %s' % fullpath)
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
@@ -710,7 +795,7 @@ class TidyItScript(SchedulerScript):
         # We only tidy the parent if all of it's children
         # are gone
         for entry in tidylist:
-            self._remove(entry)
+            self._handle(entry, current_depth)
 
         if len(dirents) + len(valid_paths):
             # We have a media directory worth keeping
@@ -728,6 +813,7 @@ class TidyItScript(SchedulerScript):
 
         if not self.validate(keys=(
             'Mode',
+            'MovePath',
             'VideoPaths',
             'AlwaysTrash',
             'VideoMinSize',
@@ -748,6 +834,17 @@ class TidyItScript(SchedulerScript):
 
         # Fix tidy-safe entries to object (self.*)
         self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
+
+        # Store Move Path
+        self.move_path = tidy_path(self.get('MovePath', DEFAULT_MOVE_PATH))
+        if self.move_path:
+            # Convert to absolute path if possible
+            self.move_path = abspath(self.move_path)
+
+        if self.mode == TIDYIT_MODE.MOVE and not self.move_path:
+            # Fall back to preview mode if no move path is specified
+            self.mode = TIDYIT_MODE.PREVIEW
+            self.logger.warning('MovePath not specified; falling back to Preview Mode.')
 
         # Remaining Environment Variables
         video_extensions = self.parse_list(self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS))
@@ -893,15 +990,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Unless this switch is specified, this script only runs in a " +\
         "log only mode (a dry-run) allowing you to see the actions the " +\
-        "script would have otherwise performed.",
+        "script would have otherwise performed. This switch can be " +\
+        "combined with the --move-path (-p) switch to move handled " +\
+        "instead.",
     )
     parser.add_option(
-        "-r",
-        "--recycle",
-        dest="recycle",
-        action="store_true",
-        help="This is the less destructive version of --clean (-c) and " +\
-        "moves content to the Recycle Bin (Windows) or Trash (Mac/Linux).",
+        "-p",
+        "--move-path",
+        dest="move_path",
+        help="Identifiy the path to place content into instead of " + \
+            "removing it.  By specifying a --move-path, the --clean (-c) " +\
+            "switch is implied however handled content is moved instead " +\
+            "of being removed.",
+        metavar="PATH",
     )
     parser.add_option(
         "-L",
@@ -939,21 +1040,14 @@ if __name__ == "__main__":
     _video_minsize = options.video_minsize
     _minage = options.minage
     _clean = options.clean
-    _recycle = options.recycle
+    _move_path = options.move_path
     _safeentries = options.safeentries
     _alwaystrash = options.alwaystrash
 
-    if _clean or _recycle:
-        # By specifying a clean (or recycle) switch, we know for sure the user
+    if _clean or _move_path or videopaths:
+        # By specifying one of the followings; we know for sure that the
+        # user is running this script manually from the command line.
         # is running this as a standalone script,
-
-        # Setting Script Mode to NONE forces main() to execute
-        # which is where the code for the cli() is defined
-        script_mode = SCRIPT_MODE.NONE
-
-    if videopaths:
-        # By specifying a videopath, we know for sure the user is
-        # running this as a standalone script,
 
         # Setting Script Mode to NONE forces main() to execute
         # which is where the code for the cli() is defined
@@ -965,20 +1059,13 @@ if __name__ == "__main__":
         script_mode=script_mode,
     )
 
-    if _clean and _recycle:
-        # these to commands can't coexist together; it's either
-        # one or the other.
-        script.logger.error(
-            "Providing both a 'clean' and 'recycle' option has caused " +\
-            "us some confusion; aborting.",
-        )
-        exit(EXIT_CODE.FAILURE)
-
     if _clean:
         script.set('Mode', TIDYIT_MODE.DELETE)
 
-    elif _recycle:
-        script.set('Mode', TIDYIT_MODE.TRASH)
+    if _move_path:
+        # Move always trumps _clean
+        script.set('Mode', TIDYIT_MODE.MOVE)
+        script.set('MovePath', _move_path)
 
     if _minage:
         try:
@@ -1014,7 +1101,7 @@ if __name__ == "__main__":
             # Force defaults if not set
             script.set('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
 
-        if not (_clean or _recycle):
+        if not (_clean or _move_path):
             script.set('Mode', TIDYIT_MODE_DEFAULT)
 
         if not _video_minsize:

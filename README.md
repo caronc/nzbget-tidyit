@@ -94,6 +94,13 @@ Options:
   -c, --clean           Unless this switch is specified, this script only runs
                         in a log only mode (a dry-run) allowing you to see the
                         actions the script would have otherwise performed.
+                        This switch can be combined with the --move-path (-p)
+                        switch to move handled instead.
+  -p PATH, --move-path=PATH
+                        Identifiy the path to place content into instead of
+                        removing it.  By specifying a --move-path, the --clean
+                        (-c) switch is implied however handled content is
+                        moved instead of being removed.
   -L FILE, --logfile=FILE
                         Send output to the specified logfile instead of
                         stdout.
@@ -113,6 +120,16 @@ You can scan multiple directories with the following command:
 ```bash
 # Scan a your librarys (print only mode)
 python TidyIt.py /usr/share/TVShows /usr/share/Movies
+```
+
+If you don't want your content to be removed; you can just have handled content moved
+to another directory for your review later on. All directory paths are preserved so it won't
+take any rocket science to figure out where removed content came from. It's a little bit of
+a more save mode then the --clean (-c) switch.
+```bash
+# Scan a your librarys and move any content to be handled to the
+# TidyIt.Trash in your hoe directory (~ is supported)
+python TidyIt.py -m ~/TidyIt.Trash /usr/share/TVShows
 ```
 
 If the script behaves as you expect it, you can schedule it as a cron
