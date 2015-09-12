@@ -34,9 +34,9 @@
 #
 # Info about this TidyIt NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sat, May 30th, 2015.
+# Date: Mon, Aug 31th, 2015.
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.0.3
+# Script Version: 0.4.0
 #
 # A script that can tidy up your library by removing stale content
 # left over from removing video files from third party applications.
@@ -80,7 +80,6 @@
 #       that the script doesn't cause irreversable damage to your media library.
 #
 #Mode=Preview
-
 
 # Move Path.
 #
@@ -1059,6 +1058,7 @@ if __name__ == "__main__":
 
     if _clean:
         script.set('Mode', TIDYIT_MODE.DELETE)
+        script.set('MovePath', '')
 
     if _move_path:
         # Move always trumps _clean
