@@ -473,6 +473,21 @@ class TidyItScript(SchedulerScript):
                         self.logger.debug('Move Exception %s' % str(e))
                         return False
 
+                # Now that content has been backed up properly, we can
+                # safely remove the source directory
+                if isdir(path):
+                    try:
+                        rmtree(path)
+                        self.logger.info(
+                            'Removed (already backed up) ' + \
+                            'DIRECTORY: %s' % path,
+                        )
+                    except:
+                        self.logger.error(
+                            'Could not remove (already backed up) ' + \
+                            'DIRECTORY: %s' % path,
+                        )
+                        return False
             else:
                 self.logger.info('PREVIEW ONLY: Handle DIRECTORY: %s' % path)
 
