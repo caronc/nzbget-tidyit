@@ -260,8 +260,10 @@ MEDIAMETA_FILES_RE = (
 VIDEO_ALIKE_FILES_RE = (
     # Subtitles
     re.compile('^(?P<filename>.*)\.[A-Za-z]{2}\.srt$', re.IGNORECASE),
+    # Thumbnails
     re.compile('^(?P<filename>.*)-thumb\.(jpe?g)$', re.IGNORECASE),
-    re.compile('^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|sub|idx)$', re.IGNORECASE),
+    # Meta
+    re.compile('^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|srr|sub|idx)$', re.IGNORECASE),
 )
 
 # Meta Directory(ies)
@@ -277,11 +279,20 @@ OS_METADATA_ENTRY = (
     'Thumbs.db',
 ) + SKIP_DIRECTORIES
 
-# A list of compiled regular expressions identifying files to not parse ever
+# A list of compiled regular expressions identifying files to not parse if
+# found in a directory.  This does not make them safe from removal though!
+#
+# In the event that only ignored content remains in the directory, it will
+# be automatically removed. This list was really only created to provide
+# an 'exception' to what is considered valid.  Hence, it's easier to
+# identify *.mkv and then 'exclude' the list below as valid.
+#
+# This list is also backwards checked against ALIKE matches to make sure
+# we don't pick from something on this list.
 IGNORE_FILELIST_RE = (
-    # Samples
-    re.compile('^.*[-.]sample(\.[^.]*)?$', re.IGNORECASE),
-    re.compile('^sample-.*$', re.IGNORECASE),
+    # Sample Videos should not be included in our main listing
+    re.compile('^(?P<filename>.*)[.-]sample\.[^.]+$', re.IGNORECASE),
+    re.compile('^sample[.-](?P<filename>.*)\.[^.]+$', re.IGNORECASE),
 )
 
 class TIDYIT_MODE(object):
@@ -572,7 +583,8 @@ class TidyItScript(SchedulerScript):
         valid_paths = []
         while(len(_valid_paths)):
             _path = _valid_paths.pop()
-            if True in [ v.search(path) is not None \
+            if isfile(_path) and \
+               True in [ v.search(basename(_path)) is not None \
                         for v in IGNORE_FILELIST_RE ]:
                 self.logger.debug(
                     'Skipping - Ignored file: %s' % basename(_path))
@@ -706,7 +718,10 @@ class TidyItScript(SchedulerScript):
                 if extensions.search(fullpath):
                     if len(valid_paths) == 0:
                         # We found a video file in a situation where
-                        # there were no 'valid' ones
+                        # there were no 'valid' ones; This is caused by the
+                        # filesize not meeting the defined requirements or it
+                        # was defined in the IGNORE_FILELIST and it's the last
+                        # remaining content found in the directory
                         tidylist.append(fullpath)
                         self.logger.debug('Planned handling (invalid video): %s' % fullpath)
                     # Next File
@@ -745,7 +760,9 @@ class TidyItScript(SchedulerScript):
                                 # Match against a valid_path
                                 if basename(entry).\
                                    startswith(
-                                       basename(match.group('filename'))):
+                                       basename(match.group('filename'))) and \
+                                        True not in [ ignore.search(basename(entry)) is not None \
+                                        for ignore in IGNORE_FILELIST_RE ]:
                                     # We have a good match!
                                     self.logger.debug('%s belongs to %s' % (
                                         dirent,
@@ -1071,14 +1088,14 @@ if __name__ == "__main__":
         script_mode=script_mode,
     )
 
-    if _clean:
-        script.set('Mode', TIDYIT_MODE.DELETE)
-        script.set('MovePath', '')
 
     if _move_path:
         # Move always trumps _clean
         script.set('Mode', TIDYIT_MODE.MOVE)
         script.set('MovePath', _move_path)
+
+    elif _clean:
+        script.set('Mode', TIDYIT_MODE.DELETE)
 
     if _minage:
         try:
@@ -1128,6 +1145,10 @@ if __name__ == "__main__":
 
         if not _alwaystrash:
             script.set('AlwaysTrash', '')
+
+        if script.get('MovePath') is None:
+            # Allow this flag to exist
+            script.set('MovePath', '')
 
         # Force generic Video Extensions
         script.set('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
