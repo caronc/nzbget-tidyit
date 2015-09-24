@@ -539,7 +539,7 @@ class TidyItScript(SchedulerScript):
         try:
             stat_obj = stat(path)
             mtime = datetime.fromtimestamp(stat_obj[ST_MTIME])
-            if mtime >= ref_time:
+            if current_depth > 1 and mtime >= ref_time:
                 # We're done; directory is to new
                 self.logger.debug('Skipping %s; modified less than %ds ago.' % (
                     path,
