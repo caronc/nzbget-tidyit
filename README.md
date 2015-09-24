@@ -1,6 +1,6 @@
 __Note:__ This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
-script wrapper for _NZBGet_. However, it also works perfectly well as a
-standalone script for others too! See the CLI section below.
+script for _NZBGet_. However, it also works perfectly well as a standalone script for others too!
+See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
 
 TidyIt Scheduler Script
 ========================
