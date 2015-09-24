@@ -122,7 +122,7 @@
 # - .DS_Store: OSX meta directory.
 # - .AppleDouble: OSX meta directory.
 # - __MACOSX: OSX meta directory.
-# - @eadir: Synology meta directory.
+# - @eaDir: Synology meta directory.
 #
 # But you can additionally identify more entries here. Use a comma and/or
 # space to delimit multiple entries.
@@ -302,7 +302,7 @@ METADIRS = ( 'metadata', )
 # ignored reguardless and can be safely be removed if found within a directory
 OS_METADATA_ENTRIES = (
     'Thumbs.db',
-    '@eadir',
+    '@eaDir',
 ) + SKIP_DIRECTORIES
 
 # A list of compiled regular expressions identifying files to not parse if
