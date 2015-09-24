@@ -1,3 +1,7 @@
+__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
+script wrapper for _NZBGet_. However, it also works perfectly well as a
+standalone script for others too! See the CLI section below.
+
 TidyIt Scheduler Script
 ========================
 TidyIt is a script designed to tidy up your video library; house cleaning
@@ -26,11 +30,6 @@ The script operates in 3 modes:
 * __Preview__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done.  It doesn't actually do anthing at all to your library though.  This might be all you need as it's output can allow you to take your own actions.  Alternatively this is a great method to run in until you get the options the way you like them.
 * __Delete__: This mode performs the same check the Preview does however anything flagged to be handled is removed.
 * __Move__: This mode _moves_ handled content into another directory (that you identify).  This allows you to review what is considered junk and decide for yourself if it should be removed.  This method also requires you to be responsible for managing the directory you move content to.
-
-This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
-script wrapper for _NZBGet_. However, it also works perfectly well as a
-standalone script for others too!
-
 
 Installation Instructions
 =========================
