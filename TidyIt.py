@@ -108,6 +108,31 @@
 #
 #AlwaysTrash=
 
+# Meta Content.
+#
+# Identify metafile content you wish to handle when they're the only things
+# left in the video directory.  For example... Microsoft likes putting
+# a Thumbs.db file which contains a thumbnail cache of any images and videos
+# found. These are not nessisarily useless to us while our media directory
+# is populated with content, but is utterly useless to us if it isn't.
+#
+# We want to identfy meta content here. There is some common meta information
+# automatically defined (and do not have to be specified):
+# - Thumbs.db: Microsoft Thumbnail Database.
+# - .DS_Store: OSX meta directory.
+# - .AppleDouble: OSX meta directory.
+# - __MACOSX: OSX meta directory.
+# - @eadir: Synology meta directory.
+#
+# But you can additionally identify more entries here. Use a comma and/or
+# space to delimit multiple entries.
+#
+#MetaContent=
+
+# Video Libraries to Scan.
+#
+# Specify any number of directories this script can (recursively) check
+# delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc
 # Video Libraries to Scan.
 #
 # Specify any number of directories this script can (recursively) check
@@ -177,7 +202,7 @@
 #
 # All systems have their own encoding; here is a loose guide you can use
 # to determine what encoding you are (if you're not sure):
-# - UTF-8: This is the encoding used by most Linux/Unix filesystems. just
+# - UTF-8: This is the encoding used by most Linux/Unix filesystems. Just
 #          check the global variable $LANG to see if that's what you are.
 # - UTF-16: This is the encoding usually used by OS/X systems and NTFS.
 # - ISO-8859-1: Also referred to as Latin-1; Microsoft Windows used this
@@ -275,8 +300,9 @@ METADIRS = ( 'metadata', )
 
 # A Tuple that contains all of the directories and/files that are always
 # ignored reguardless and can be safely be removed if found within a directory
-OS_METADATA_ENTRY = (
+OS_METADATA_ENTRIES = (
     'Thumbs.db',
+    '@eadir',
 ) + SKIP_DIRECTORIES
 
 # A list of compiled regular expressions identifying files to not parse if
@@ -550,11 +576,10 @@ class TidyItScript(SchedulerScript):
         except OSError:
             # The directory suddently became inaccessible
             self.logger.warning(
-                'Path %s became inaccessible.' % path,
+                'Path %s is inaccessible.' % path,
             )
-            # Since the directory is missing, return 0 letting
-            # recursively called situations go ahead and handle
-            # this directory
+            # Since the directory is missing (or inaccessible
+            # due to permissions) return an IGNORE on it
             return TidyCode.IGNORE
 
         except ValueError:
@@ -623,7 +648,7 @@ class TidyItScript(SchedulerScript):
                 self.logger.debug('Safe entry %s found in %s' % (dirent, path))
                 return TidyCode.IGNORE
 
-            if dirent in OS_METADATA_ENTRY:
+            if dirent in self.meta_entries:
                 # METADATA is only cannon-fodder if it's determined
                 # the directory should be removed
                 self.logger.debug('Potential handling (os meta data): %s' % fullpath)
@@ -845,6 +870,7 @@ class TidyItScript(SchedulerScript):
             'MovePath',
             'VideoPaths',
             'AlwaysTrash',
+            'MetaContent',
             'VideoMinSize',
             'ProcessMinAge',
             'VideoExtensions',
@@ -881,7 +907,11 @@ class TidyItScript(SchedulerScript):
         minage = int(self.get('ProcessMinAge', DEFAULT_MATCH_MINAGE))
         encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
         paths = self.parse_path_list(self.get('VideoPaths'))
-        trash = self.parse_path_list(self.get('AlwaysTrash'))
+        self.meta_entries = self.parse_list(self.get('MetaContent', OS_METADATA_ENTRIES))
+
+        # Create Unique List of Meta Entries
+        self.meta_entries = set(list(self.meta_entries) + list(OS_METADATA_ENTRIES))
+        self.logger.debug('Meta Entries set to: "%s"' % '", "'.join(self.meta_entries))
 
         # Extra Managing - build regular expressions based on input
         video_extras = self.parse_list(self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS))
@@ -912,8 +942,10 @@ class TidyItScript(SchedulerScript):
                 'Invalid regular expression: "(%s)$"' % _extensions,
             )
 
+
         # Trash Managing - build regular expressions based on input
         always_trash_entries = self.parse_list(self.get('AlwaysTrash', []))
+
         # By Default; Always Trash is Disabled (Safer this way)
         self.always_trash = None
         if len(always_trash_entries):
@@ -985,10 +1017,23 @@ if __name__ == "__main__":
         "-t",
         "--always-trash",
         dest="alwaystrash",
-        help="Identifiy any file extensions you wish to always trash " +\
+        help="Identify any file extensions you wish to always trash " +\
              "if matched. By default this is not set." +\
-             "You can specify more then one " +\
-             "trash entry by separating them with a comma (,). ",
+             "You can specify more then one trash entry by " +\
+             "separating each of them with a comma (,). ",
+        metavar="ENTRIES",
+    )
+    parser.add_option(
+        "-M",
+        "--meta-content",
+        dest="metacontent",
+        help="Identify any files and/or directories that should be " +\
+             "treated as meta content. Meta content is only handled " +\
+             "if it's the last thing within a media directory." +\
+             "You can specify more then one meta entry by " +\
+             "separating each of them with a comma (,). " +\
+            " By Default the following are already defined: " +\
+            "'%s'." % "', '".join(OS_METADATA_ENTRIES),
         metavar="ENTRIES",
     )
     parser.add_option(
@@ -1072,6 +1117,7 @@ if __name__ == "__main__":
     _move_path = options.move_path
     _safeentries = options.safeentries
     _alwaystrash = options.alwaystrash
+    _metacontent = options.metacontent
 
     if _clean or _move_path or videopaths:
         # By specifying one of the followings; we know for sure that the
@@ -1123,6 +1169,9 @@ if __name__ == "__main__":
     if _alwaystrash:
         script.set('AlwaysTrash', _alwaystrash)
 
+    if _metacontent:
+        script.set('MetaContent', _metacontent)
+
     if _encoding:
         script.set('SystemEncoding', _encoding)
 
@@ -1145,6 +1194,9 @@ if __name__ == "__main__":
 
         if not _alwaystrash:
             script.set('AlwaysTrash', '')
+
+        if not _metacontent:
+            script.set('MetaContent', '')
 
         if script.get('MovePath') is None:
             # Allow this flag to exist
