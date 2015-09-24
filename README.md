@@ -12,18 +12,24 @@ It will not however remove all the content that surrounds it.
 Since the primary focus of this script is to remove content from your media
 library, I will not be held responsible for any irrecoverable data loss you
 experience.  I can confirm the tool works for me, but that doesn't mean it
-will work for you. The good news is it's filled with safe guards!
+will work for you. The good news is that the script is filled with safe guards!
+Thus you'd have to stray far from the default settings to damage your library.
 
 The script intentionally operates in a _log only_ mode by default unless you 
 explicitly specify it to run differently.  I encourage you to run the script
 in this _log only_ mode first anyway;  get an idea as to what it wants to do
-and the files it wants to remove. If your happy with it's decisions, you can
-flip a switch and the script will begin house cleaning everything it promised
+and the files it wants to handl. If your happy with it's decisions, you can
+flip a switch and the script will begin tidying up your library as promised
 to you.
 
+The script operates in 3 modes:
+* __Preview Only__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done.  It doesn't actually do anthing at all to your library though.  Sometimes this is all you need so that you can handle it's output your own way.  Alternatively this is a great method to run in until you get the options the way you like them.
+* __Delete__: This performs the same check the Preview does however anything flagged to be handled is removed.
+* __Move__: Similar to __Delete__ however this mode just moves content that should have otherwise been removed into another directory (that you specify).  This allows you to review what is considered junk and decide for yourself if it should be removed.  This method also requires you to be responsible for managing the directory you move content to.
+
 This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
-script wrapper for _NZBGet_. However, it also works perfectly fine as a
-standalone script for others too.
+script wrapper for _NZBGet_. However, it also works perfectly well as a
+standalone script for others too!
 
 
 Installation Instructions
@@ -77,10 +83,18 @@ Options:
                         with a comma (,). The default value(s) are
                         '.tidysafe'.
   -t ENTRIES, --always-trash=ENTRIES
-                        Identifiy any file extensions you wish to always trash
+                        Identify any file extensions you wish to always trash
                         if matched. By default this is not set.You can specify
-                        more then one trash entry by separating them with a
-                        comma (,).
+                        more then one trash entry by separating each of them
+                        with a comma (,).
+  -M ENTRIES, --meta-content=ENTRIES
+                        Identify any files and/or directories that should be
+                        treated as meta content. Meta content is only handled
+                        if it's the last thing within a media directory.You
+                        can specify more then one meta entry by separating
+                        each of them with a comma (,).  By Default the
+                        following are already defined: 'Thumbs.db', '@eaDir',
+                        '.DS_Store', '.AppleDouble', '__MACOSX'.
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
                         Specify the minimum size a video must be before it's
                         treated as part of your collection. This value is used
