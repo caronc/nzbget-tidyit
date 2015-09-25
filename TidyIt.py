@@ -730,15 +730,6 @@ class TidyItScript(SchedulerScript):
                 continue
 
             if isfile(fullpath):
-                # Match against always trash items (if configured to do so)
-                if self.always_trash is not None and self.always_trash.search(fullpath):
-                    # we found a file we flagged to always be trashed when
-                    # matched
-                    tidylist.append(fullpath)
-                    self.logger.debug('Planned handling (marked for trash): %s' % fullpath)
-                    # Next File
-                    continue
-
                 # Match against extras as a way of safeguarding
                 if extensions.search(fullpath):
                     if len(valid_paths) == 0:
@@ -829,6 +820,16 @@ class TidyItScript(SchedulerScript):
                     remove_if_empty.append(fullpath)
                     # Next File
                     continue
+
+                # Match against always trash items (if configured to do so)
+                if self.always_trash is not None and self.always_trash.search(fullpath):
+                    # we found a file we flagged to always be trashed when
+                    # matched
+                    tidylist.append(fullpath)
+                    self.logger.debug('Planned handling (marked for trash): %s' % fullpath)
+                    # Next File
+                    continue
+
             # If we make it to the end, we scanned a file
             # that does not meet filtering criterias
 
