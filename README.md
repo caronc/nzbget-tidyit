@@ -1,17 +1,15 @@
 __Note:__ This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
-script for _NZBGet_. However, it also works perfectly well as a standalone script for others too!
+script for _NZBGet_. However, it also works perfectly well as a standalone script for others too! It can be easily adapted to anyone's environment.
 See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
 
 TidyIt Scheduler Script
 ========================
 TidyIt is a script designed to tidy up your video library; house cleaning
 one could say. It takes care of directories that once held video content
-but now is just either empty, or contains old meta data.
+but now is just either empty, or contains old meta data and other junk.
 
 This script is especially useful if you use a third party application such as
-Plex or KODI (XBMC) to manage your video library. Most third party applications
-that let remove a video from your library will _only_ remove the video itself.
-It will not however remove all the content that surrounds it.
+Plex or KODI (XBMC) to manage your video library. It also works great for Synology devices too. In fact, most third party applications and/or appliances that allow you to remove a video from your library will _only_ remove the video itself. They will not remove all the other content that surrounds it.
 
 Since the primary focus of this script is to remove content from your media
 library, I will not be held responsible for any irrecoverable data loss you
@@ -22,9 +20,8 @@ Thus you'd have to stray far from the default settings to damage your library.
 The script intentionally operates in a _log only_ mode by default unless you 
 explicitly specify it to run differently.  I encourage you to run the script
 in this _log only_ mode first anyway;  get an idea as to what it wants to do
-and the files it wants to handl. If your happy with it's decisions, you can
-flip a switch and the script will begin tidying up your library as promised
-to you.
+and the files it wants to handle. If you're happy with it's decisions, you can
+flip a switch (to the _Move_ or _Delete_ mode) and the script will begin tidying up your library as promised to you.
 
 The script operates in 3 modes:
 * __Preview__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done.  It doesn't actually do anthing at all to your library though.  This might be all you need as it's output can allow you to take your own actions.  Alternatively this is a great method to run in until you get the options the way you like them.
@@ -135,17 +132,14 @@ You can scan multiple directories with the following command:
 python TidyIt.py /usr/share/TVShows /usr/share/Movies
 ```
 
-If you don't want your content to be removed; you can just have handled content moved
-to another directory for your review later on. All directory paths are preserved so it won't
-take any rocket science to figure out where removed content came from. It's a little bit of
-a more save mode then the --clean (-c) switch.
+If you don't want your content to be removed; you can just have handled content moved to another directory for your review later on. All directory paths are preserved so it won't take any rocket science to figure out where the removed content came from. It's a basically a safer mode then the --clean (-c) switch provides.
 ```bash
-# Scan a your librarys and move any content to be handled to the
-# TidyIt.Trash in your hoe directory (~ is supported)
+# Scan a your libraries and move any content to be handled to the
+# TidyIt.Trash in your home directory (~ is supported)
 python TidyIt.py -m ~/TidyIt.Trash /usr/share/TVShows
 ```
 
-If the script behaves as you expect it, you can schedule it as a cron
+If the script behaves as you expect it should, you can schedule it as a cron
 to frequently clean your libraries every day with a command such as:
 ```bash
 # $> crontab -e
