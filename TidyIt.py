@@ -301,8 +301,12 @@ METADIRS = ( 'metadata', )
 # A Tuple that contains all of the directories and/files that are always
 # ignored reguardless and can be safely be removed if found within a directory
 OS_METADATA_ENTRIES = (
+    # Microsoft Thumbnails
     'Thumbs.db',
+    # Synology Device Meta Directory
     '@eaDir',
+    # Western Digital Meta Directory
+    '.wdtv',
 ) + SKIP_DIRECTORIES
 
 # A list of compiled regular expressions identifying files to not parse if
