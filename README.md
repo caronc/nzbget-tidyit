@@ -18,7 +18,7 @@ will work for you. The good news is that the script is filled with safe guards!
 Thus you'd have to stray far from the default settings to damage your library.
 
 The script intentionally operates in a _log only_ mode by default unless you 
-explicitly specify it to run differently.  I encourage you to run the script
+explicitly specify it to run differently. I encourage you to run the script
 in this _log only_ mode first anyway;  get an idea as to what it wants to do
 and the files it wants to handle. If you're happy with its decisions, you can
 flip a switch (to the _Move_ or _Delete_ mode) and the script will begin tidying up your library as promised to you.
@@ -26,7 +26,7 @@ flip a switch (to the _Move_ or _Delete_ mode) and the script will begin tidying
 The script operates in 3 modes:
 * __Preview__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done. It doesn't actually do anthing at all to your library though. This might be all you need as it's output can allow you to take your own actions. Alternatively this is a great method to run in until you get the options the way you like them.
 * __Delete__: This mode performs the same check the Preview does however anything flagged to be handled is removed.
-* __Move__: This mode _moves_ handled content into another directory (that you identify). This allows you to review what is considered junk and decide for yourself if it should be removed.This method also requires you to be responsible for managing the directory you move content to.
+* __Move__: This mode _moves_ handled content into another directory (that you identify). This allows you to review what is considered junk and decide for yourself if it should be removed. This method also requires you to be responsible for managing the directory you move content to.
 
 Installation Instructions
 =========================
@@ -80,15 +80,15 @@ Options:
                         '.tidysafe'.
   -t ENTRIES, --always-trash=ENTRIES
                         Identify any file extensions you wish to always trash
-                        if matched. By default this is not set.You can specify
+                        if matched. By default this is not set. You can specify
                         more then one trash entry by separating each of them
                         with a comma (,).
   -M ENTRIES, --meta-content=ENTRIES
                         Identify any files and/or directories that should be
                         treated as meta content. Meta content is only handled
-                        if it's the last thing within a media directory.You
+                        if it's the last thing within a media directory. You
                         can specify more then one meta entry by separating
-                        each of them with a comma (,).  By Default the
+                        each of them with a comma (,). By Default the
                         following are already defined: 'Thumbs.db', '@eaDir',
                         '.DS_Store', '.AppleDouble', '__MACOSX'.
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
