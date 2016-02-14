@@ -5,7 +5,7 @@ See the _Command Line_ section below for details how you can easily use this on 
 TidyIt Scheduler Script
 ========================
 TidyIt is a script designed to tidy up your video library; house cleaning
-one could say. It takes care of directories that once held video content
+one could say. It takes care of directories that once held video content,
 but now is just either empty, or contains old meta data and other junk.
 
 This script is especially useful if you use a third party application such as
@@ -13,20 +13,20 @@ Plex or KODI (XBMC) to manage your video library. It also works great for Synolo
 
 Since the primary focus of this script is to remove content from your media
 library, I will not be held responsible for any irrecoverable data loss you
-experience.  I can confirm the tool works for me, but that doesn't mean it
+experience. I can confirm the tool works for me, but that doesn't mean it
 will work for you. The good news is that the script is filled with safe guards!
 Thus you'd have to stray far from the default settings to damage your library.
 
 The script intentionally operates in a _log only_ mode by default unless you 
-explicitly specify it to run differently.  I encourage you to run the script
+explicitly specify it to run differently. I encourage you to run the script
 in this _log only_ mode first anyway;  get an idea as to what it wants to do
-and the files it wants to handle. If you're happy with it's decisions, you can
+and the files it wants to handle. If you're happy with its decisions, you can
 flip a switch (to the _Move_ or _Delete_ mode) and the script will begin tidying up your library as promised to you.
 
 The script operates in 3 modes:
-* __Preview__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done.  It doesn't actually do anthing at all to your library though.  This might be all you need as it's output can allow you to take your own actions.  Alternatively this is a great method to run in until you get the options the way you like them.
+* __Preview__: This is the default option. It runs the script and just reports to the screen what it would have otherwise done. It doesn't actually do anthing at all to your library though. This might be all you need as it's output can allow you to take your own actions. Alternatively this is a great method to run in until you get the options the way you like them.
 * __Delete__: This mode performs the same check the Preview does however anything flagged to be handled is removed.
-* __Move__: This mode _moves_ handled content into another directory (that you identify).  This allows you to review what is considered junk and decide for yourself if it should be removed.  This method also requires you to be responsible for managing the directory you move content to.
+* __Move__: This mode _moves_ handled content into another directory (that you identify). This allows you to review what is considered junk and decide for yourself if it should be removed. This method also requires you to be responsible for managing the directory you move content to.
 
 Installation Instructions
 =========================
@@ -66,7 +66,7 @@ Here are the switches available to you:
 Usage: TidyIt.py [options] [scandir1 [scandir2 [...]]]
 
 Options:
-  -h, --help            show this help message and exit
+  -h, --help            Show this help message and exit.
   -n ENCODING, --encoding=ENCODING
                         The system encoding to use (utf-8, ISO-8859-1, etc).
                         The default value is 'UTF-8'.
@@ -80,15 +80,15 @@ Options:
                         '.tidysafe'.
   -t ENTRIES, --always-trash=ENTRIES
                         Identify any file extensions you wish to always trash
-                        if matched. By default this is not set.You can specify
+                        if matched. By default this is not set. You can specify
                         more then one trash entry by separating each of them
                         with a comma (,).
   -M ENTRIES, --meta-content=ENTRIES
                         Identify any files and/or directories that should be
                         treated as meta content. Meta content is only handled
-                        if it's the last thing within a media directory.You
+                        if it's the last thing within a media directory. You
                         can specify more then one meta entry by separating
-                        each of them with a comma (,).  By Default the
+                        each of them with a comma (,). By Default the
                         following are already defined: 'Thumbs.db', '@eaDir',
                         '.DS_Store', '.AppleDouble', '__MACOSX'.
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
@@ -117,24 +117,24 @@ Options:
   -D, --debug           Debug Mode
 ```
 
-Here is simple example:
+Here is a simple example:
 ```bash
-# Scan a your library (print only mode)
+# Scan your library (print only mode)
 python TidyIt.py /usr/share/TVShows
-# Happy with the results?  Okay then run the script with the --clean (-c) switch:
+# Happy with the results? Okay then run the script with the --clean (-c) switch:
 
 python TidyIt.py -c /usr/share/TVShows
 ```
 
 You can scan multiple directories with the following command:
 ```bash
-# Scan a your librarys (print only mode)
+# Scan your libraries (print only mode)
 python TidyIt.py /usr/share/TVShows /usr/share/Movies
 ```
 
-If you don't want your content to be removed; you can just have handled content moved to another directory for your review later on. All directory paths are preserved so it won't take any rocket science to figure out where the removed content came from. It's a basically a safer mode then the --clean (-c) switch provides.
+If you don't want your content to be removed; you can just have handled content moved to another directory for your review later on. All directory paths are preserved so it won't take any rocket science to figure out where the removed content came from. It's basically a safer mode then the --clean (-c) switch provides.
 ```bash
-# Scan a your libraries and move any content to be handled to the
+# Scan your libraries and move any content to be handled to the
 # TidyIt.Trash in your home directory (~ is supported)
 python TidyIt.py -m ~/TidyIt.Trash /usr/share/TVShows
 ```
