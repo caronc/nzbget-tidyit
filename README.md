@@ -35,9 +35,8 @@ Installation Instructions
    * __NZBGet users__: you will want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
 
 The Non-NZBGet users can also use this script via a cron (or simply call it
-from the command line) to automatically poll directories for the latest
-subtitles for the video content within it. See the __Command Line__ section
-below for more instructions on how to do this.
+from the command line) to automatically tidy their directories too.
+See the __Command Line__ section below for more instructions on how to do this.
 
 **Note:** The _TidyIt_ directory provides all of the nessisary dependencies
 in order for this script to work correctly. The directory is only required
@@ -59,7 +58,7 @@ Command Line
 ============
 TidyIt.py has a built in command line interface that can be easily tied
 to a cron entry or can be easilly called from the command line to automate
-the fetching of subtitles.
+the cleanup of your media libraries.
 
 Here are the switches available to you:
 ```
