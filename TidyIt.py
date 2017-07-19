@@ -3,7 +3,7 @@
 #
 # TidyIt Scheduler script for NZBGet
 #
-# Copyright (C) 2015-2016 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2015-2017 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -228,6 +228,9 @@
 # flipping this flag here.
 #
 #Debug=no
+
+# Issue a tidy of any directories you defined above here:
+#DoTidy@Tidy Defined Media Paths
 
 ### NZBGET SCHEDULER SCRIPT                                                ###
 ##############################################################################
@@ -982,6 +985,14 @@ class TidyItScript(SchedulerScript):
         """
 
         return self.tidy()
+
+    def action_dotidy(self, *args, **kwargs):
+        """
+        Execute the DoTidy Test Action
+        """
+        # run a single instance
+        self.tidy()
+        return True
 
     def main(self, *args, **kwargs):
         """CLI
