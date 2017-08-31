@@ -2,6 +2,10 @@ __Note:__ This script was intended to be an [NZBGet](http://nzbget.net) and _Sch
 script for _NZBGet_. However, it also works perfectly well as a standalone script for others too! It can be easily adapted to anyone's environment.
 See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
 
+[![Paypal](http://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
+[![Patreon](http://repo.nuxref.com/pub/img/patreondonate.svg)](https://www.patreon.com/lead2gold)
+
+
 TidyIt Scheduler Script
 ========================
 TidyIt is a script designed to tidy up your video library; house cleaning
