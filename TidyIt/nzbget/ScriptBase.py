@@ -3285,6 +3285,7 @@ class ScriptBase(object):
                 _f = _f.replace(']', '\]');
                 _f = _f.replace('(', '\(');
                 _f = _f.replace(')', '\)');
+                _f = _f.replace('|', '\|');
                 # convert question marks
                 _f = _f.replace('?', '.');
                 # convert asterix's in to .*

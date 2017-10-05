@@ -21,7 +21,7 @@ experience. I can confirm the tool works for me, but that doesn't mean it
 will work for you. The good news is that the script is filled with safe guards!
 Thus you'd have to stray far from the default settings to damage your library.
 
-The script intentionally operates in a _log only_ mode by default unless you 
+The script intentionally operates in a _log only_ mode by default unless you
 explicitly specify it to run differently. I encourage you to run the script
 in this _log only_ mode first anyway;  get an idea as to what it wants to do
 and the files it wants to handle. If you're happy with its decisions, you can
@@ -83,9 +83,9 @@ Options:
                         '.tidysafe'.
   -t ENTRIES, --always-trash=ENTRIES
                         Identify any file extensions you wish to always trash
-                        if matched. By default this is not set. You can specify
-                        more then one trash entry by separating each of them
-                        with a comma (,).
+                        if matched. By default this is not set. You can
+                        specify more then one trash entry by separating each
+                        of them with a comma (,).
   -M ENTRIES, --meta-content=ENTRIES
                         Identify any files and/or directories that should be
                         treated as meta content. Meta content is only handled
@@ -93,13 +93,22 @@ Options:
                         can specify more then one meta entry by separating
                         each of them with a comma (,). By Default the
                         following are already defined: 'Thumbs.db', '@eaDir',
-                        '.DS_Store', '.AppleDouble', '__MACOSX'.
+                        '.wdtv', '.DS_Store', '.AppleDouble', '__MACOSX'.
   -m SIZE_IN_MB, --video-minsize=SIZE_IN_MB
                         Specify the minimum size a video must be before it's
                         treated as part of your collection. This value is used
                         to diffentiate between video file and samples files.
                         This value is interpreted in MB (Megabytes) and
                         defaults to 150 MB.
+  -x ENTRIES, --video-extras=ENTRIES
+                        Identify the extra files you keep around with your
+                        video files as a comma delimited lit. The script will
+                        scan for these files explicitly and remove them if a
+                        video file bearing the same name is not found.  For
+                        this reason you do not want to specify video
+                        extensions here. This defaults to '.nfo,.??.srt,.srt,.
+                        sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml,.diz' if
+                        nothing is specified.
   -a AGE_IN_SEC, --min-age=AGE_IN_SEC
                         Specify the minimum age a directory and/or file must
                         be before considering it for processing. This value is

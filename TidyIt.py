@@ -950,7 +950,6 @@ class TidyItScript(SchedulerScript):
                 'Invalid regular expression: "(%s)$"' % _extensions,
             )
 
-
         # Trash Managing - build regular expressions based on input
         always_trash_entries = self.parse_list(self.get('AlwaysTrash', []))
 
@@ -1034,7 +1033,7 @@ if __name__ == "__main__":
         "--always-trash",
         dest="alwaystrash",
         help="Identify any file extensions you wish to always trash " +\
-             "if matched. By default this is not set." +\
+             "if matched. By default this is not set. " +\
              "You can specify more then one trash entry by " +\
              "separating each of them with a comma (,). ",
         metavar="ENTRIES",
@@ -1045,10 +1044,10 @@ if __name__ == "__main__":
         dest="metacontent",
         help="Identify any files and/or directories that should be " +\
              "treated as meta content. Meta content is only handled " +\
-             "if it's the last thing within a media directory." +\
+             "if it's the last thing within a media directory. " +\
              "You can specify more then one meta entry by " +\
              "separating each of them with a comma (,). " +\
-            " By Default the following are already defined: " +\
+            "By Default the following are already defined: " +\
             "'%s'." % "', '".join(OS_METADATA_ENTRIES),
         metavar="ENTRIES",
     )
@@ -1062,6 +1061,19 @@ if __name__ == "__main__":
         "is interpreted in MB (Megabytes) and defaults to %d MB." % \
         DEFAULT_VIDEO_MIN_SIZE_MB,
         metavar="SIZE_IN_MB",
+    )
+    parser.add_option(
+        "-x",
+        "--video-extras",
+        dest="video_extras",
+        help="Identify the extra files you keep around with your video " +\
+        "files as a comma delimited lit. The script will scan for these " +\
+        "files explicitly and remove them if a video file bearing the " +\
+        "same name is not found.  For this reason you do not want to " +\
+        "specify video extensions here. This " +\
+        "defaults to '%s' if nothing is specified." % \
+        DEFAULT_VIDEO_EXTRAS,
+        metavar="ENTRIES",
     )
     parser.add_option(
         "-a",
@@ -1128,6 +1140,7 @@ if __name__ == "__main__":
     # already be resident in memory (environment variables).
     _encoding = options.encoding
     _video_minsize = options.video_minsize
+    _video_extras = options.video_extras
     _minage = options.minage
     _clean = options.clean
     _move_path = options.move_path
@@ -1191,6 +1204,10 @@ if __name__ == "__main__":
     if _encoding:
         script.set('SystemEncoding', _encoding)
 
+    if _video_extras:
+        # Set our video extras
+        script.set('VideoExtras', _video_extras)
+
     if not script.get('VideoPaths') and videopaths:
         if not _encoding:
             # Force defaults if not set
@@ -1221,8 +1238,9 @@ if __name__ == "__main__":
         # Force generic Video Extensions
         script.set('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS)
 
-        # Force generic Video Extras
-        script.set('VideoExtras', DEFAULT_VIDEO_EXTRAS)
+        # Force our video extras if not other wise specified
+        if script.get('VideoExtras') is None:
+            script.set('VideoExtras', DEFAULT_VIDEO_EXTRAS)
 
         # Finally set the directory the user specified for scanning
         script.set('VideoPaths', videopaths)
