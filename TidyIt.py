@@ -154,9 +154,11 @@
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
-# Example=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
+# The following are already implied and do not need to be specified:
+#     .nfo,.??.srt,.srt,.txt,.nfo,.srr,.sfv,.sub,.idx,.jpg,.tbn,.xml,.jpg,.jpeg
+# Example=.???.forced.srt,.nzb,.xml
 #
-#VideoExtras=.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml
+#VideoExtras=.???.forced.srt
 
 # Minimum Video Size.
 #
@@ -347,9 +349,6 @@ TIDYIT_MODE_DEFAULT = TIDYIT_MODE.PREVIEW
 
 DEFAULT_VIDEO_EXTENSIONS = \
         '.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso'
-
-DEFAULT_VIDEO_EXTRAS = \
-        '.nfo,.??.srt,.srt,.sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml,.diz'
 
 DEFAULT_TIDYSAFE_ENTRIES = \
         '.tidysafe'
@@ -774,7 +773,7 @@ class TidyItScript(SchedulerScript):
                 if len(valid_paths) > 0:
                     # Handle alike files
                     found = False
-                    for afile in VIDEO_ALIKE_FILES_RE:
+                    for afile in extras:
                         match = afile.match(fullpath)
                         if match:
                             # We found a file to match for file in question
@@ -793,6 +792,7 @@ class TidyItScript(SchedulerScript):
                                     ))
                                     found = True
                                     break
+
                                 # No match if we get here, check the current
                                 # directory name against the file:
                                 if basename(dirname(entry)).\
@@ -820,13 +820,6 @@ class TidyItScript(SchedulerScript):
                         # Next File since we handled or at
                         # least matched an Alike file
                         continue
-
-                # Match against extras as a way of safeguarding
-                elif extras.search(fullpath):
-                    self.logger.debug('Potentially handling (extra): %s' % fullpath)
-                    remove_if_empty.append(fullpath)
-                    # Next File
-                    continue
 
                 # Match against always trash items (if configured to do so)
                 if self.always_trash is not None and self.always_trash.search(fullpath):
@@ -922,19 +915,23 @@ class TidyItScript(SchedulerScript):
         self.logger.debug('Meta Entries set to: "%s"' % '", "'.join(self.meta_entries))
 
         # Extra Managing - build regular expressions based on input
-        video_extras = self.parse_list(self.get('VideoExtras', DEFAULT_VIDEO_EXTENSIONS))
-        if not len(video_extras):
-            _extras = '.*'
-        else:
+        video_extras = self.parse_list(self.get('VideoExtras', ''))
+
+        # Start ourselves off with an extras list
+        extras = [ x for x in VIDEO_ALIKE_FILES_RE ]
+
+        if len(video_extras):
             _extras = '%s' % '|'.join(video_extras)
-            _extras = self._re_str(_extras)
-        try:
-            extras = re.compile('(%s)$' % _extras, re.IGNORECASE)
-            self.logger.debug('Compiled regex "(%s)$"' % _extras)
-        except:
-            self.logger.warning(
-                'Invalid regular expression: "(%s)$"' % _extras,
-            )
+            _extras = '^(?P<filename>.*)(' + self._re_str(_extras) + ')$'
+            try:
+                __extras = re.compile('(%s)$' % _extras, re.IGNORECASE)
+                self.logger.debug('Compiled regex "(%s)"' % _extras)
+                # insert our extras to the head of our list
+                extras.insert(0, __extras)
+            except:
+                self.logger.warning(
+                    'Invalid regular expression: "(%s)$"' % _extras,
+                )
 
         if not len(video_extensions):
             self.logger.error('No video extensions were specified.')
@@ -1066,13 +1063,11 @@ if __name__ == "__main__":
         "-x",
         "--video-extras",
         dest="video_extras",
-        help="Identify the extra files you keep around with your video " +\
-        "files as a comma delimited lit. The script will scan for these " +\
+        help="Identify the additional extensions you want to keep with your "+\
+        "video files as a comma delimited. The script will scan for these " +\
         "files explicitly and remove them if a video file bearing the " +\
-        "same name is not found.  For this reason you do not want to " +\
-        "specify video extensions here. This " +\
-        "defaults to '%s' if nothing is specified." % \
-        DEFAULT_VIDEO_EXTRAS,
+        "same name is not found. For this reason you do not want to " +\
+        "specify video extensions here. eg. .nzb, .???.forced.srt",
         metavar="ENTRIES",
     )
     parser.add_option(
@@ -1239,7 +1234,7 @@ if __name__ == "__main__":
 
         # Force our video extras if not other wise specified
         if script.get('VideoExtras') is None:
-            script.set('VideoExtras', DEFAULT_VIDEO_EXTRAS)
+            script.set('VideoExtras', '')
 
         # Finally set the directory the user specified for scanning
         script.set('VideoPaths', videopaths)
