@@ -1163,7 +1163,6 @@ if __name__ == "__main__":
         script_mode=script_mode,
     )
 
-
     if _move_path:
         # Move always trumps _clean
         script.set('Mode', TIDYIT_MODE.MOVE)
@@ -1245,7 +1244,8 @@ if __name__ == "__main__":
         # Finally set the directory the user specified for scanning
         script.set('VideoPaths', videopaths)
 
-    if not script.script_mode and not script.get('VideoPaths'):
+    if script.script_mode is SCRIPT_MODE.NONE \
+            and not script.get('VideoPaths'):
         # Provide some CLI help when VideoPaths has been
         # detected as not being identified
         parser.print_help()

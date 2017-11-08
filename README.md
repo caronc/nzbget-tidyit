@@ -56,7 +56,7 @@ should be known that TidyIt.py depends on the following packages:
 
 | Name                         | Version | Source                                                                               |
 | ---------------------------- |:------- |:------------------------------------------------------------------------------------ |
-| pynzbget                     | 0.5.1   | https://pypi.python.org/pypi/pynzbget/0.5.1                                          |
+| pynzbget                     | 0.6.1   | https://pypi.python.org/pypi/pynzbget/0.6.1                                          |
 
 Command Line
 ============
