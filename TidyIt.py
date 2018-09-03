@@ -223,6 +223,14 @@
 #
 #SystemEncoding=UTF-8
 
+# Keep Directories.
+#
+# Set this to Yes if you want this script to avoid cleaning up directories
+# during it's tidying phases. This option will not applie to meta
+# directories though.
+#
+#KeepDirectories=No
+
 # Enable debug logging (yes, no).
 #
 # If you experience a problem, you can bet I'll have a much easier time solving
@@ -393,6 +401,10 @@ DEFAULT_ENCODINGS = (
 # Filesystem Encoding
 DEFAULT_SYSTEM_ENCODING = 'UTF-8'
 
+# Default Keep Directory Switch
+DEFAULT_KEEP_DIRECTORY_SWITCH = 'No'
+
+
 class TidyItScript(SchedulerScript):
     """A Media Library Tidying tool written for NZBGet
     """
@@ -536,7 +548,7 @@ class TidyItScript(SchedulerScript):
 
         return True
 
-    def tidy_library(self, path, extensions, extras, minsize, minage, *args, **kwargs):
+    def tidy_library(self, path, extensions, extras, minsize, minage, keep_dirs, *args, **kwargs):
         """
           - Recursively scan a library path and returns the number of files
             found in a directory.
@@ -549,6 +561,7 @@ class TidyItScript(SchedulerScript):
             The directory passed into the function (for the first time
             will 'never' be removed reguardless of scanned outcome
 
+          - if keep_dirs is set to True, then directoreies are NOT removed.
         """
         if not isdir(path):
             # Not a directory? then return a value that will prevent
@@ -716,6 +729,7 @@ class TidyItScript(SchedulerScript):
                     extras=extras,
                     minsize=minsize,
                     minage=minage,
+                    keep_dirs=keep_dirs,
                     # Internal
                     __current_depth=current_depth+1,
                 )
@@ -729,8 +743,9 @@ class TidyItScript(SchedulerScript):
                 elif code == TidyCode.REMOVE:
                     # We got instructions to remove
                     # the directory
-                    tidylist.append(fullpath)
-                    self.logger.debug('Planned handling (dir): %s' % fullpath)
+                    if not keep_dirs:
+                        tidylist.append(fullpath)
+                        self.logger.debug('Planned handling (dir): %s' % fullpath)
 
                 # Next File
                 continue
@@ -910,6 +925,10 @@ class TidyItScript(SchedulerScript):
         paths = self.parse_path_list(self.get('VideoPaths'))
         self.meta_entries = self.parse_list(self.get('MetaContent', OS_METADATA_ENTRIES))
 
+        # Directory Handling
+        keep_dirs = self.parse_bool(
+            self.get('KeepDirectories', DEFAULT_KEEP_DIRECTORY_SWITCH))
+
         # Create Unique List of Meta Entries
         self.meta_entries = set(list(self.meta_entries) + list(OS_METADATA_ENTRIES))
         self.logger.debug('Meta Entries set to: "%s"' % '", "'.join(self.meta_entries))
@@ -971,6 +990,7 @@ class TidyItScript(SchedulerScript):
                 extras=extras,
                 minsize=video_minsize,
                 minage=minage,
+                keep_dirs=keep_dirs,
             )
 
         # Nothing fetched, nothing gained or lost
@@ -1102,6 +1122,13 @@ if __name__ == "__main__":
         metavar="PATH",
     )
     parser.add_option(
+        "-k",
+        "--keep-directories",
+        dest="keep_dir",
+        action="store_true",
+        help="Do not delete video directories during cleanup."
+    )
+    parser.add_option(
         "-L",
         "--logfile",
         dest="logfile",
@@ -1142,6 +1169,7 @@ if __name__ == "__main__":
     _safeentries = options.safeentries
     _alwaystrash = options.alwaystrash
     _metacontent = options.metacontent
+    _keep_dir = options.keep_dir
 
     if _clean or _move_path or videopaths:
         # By specifying one of the followings; we know for sure that the
@@ -1191,6 +1219,9 @@ if __name__ == "__main__":
 
     if _alwaystrash:
         script.set('AlwaysTrash', _alwaystrash)
+
+    if _keep_dir:
+        script.set('KeepDirectories', 'Yes')
 
     if _metacontent:
         script.set('MetaContent', _metacontent)
