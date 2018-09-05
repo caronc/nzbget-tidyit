@@ -123,6 +123,8 @@ Options:
                         removing it.  By specifying a --move-path, the --clean
                         (-c) switch is implied however handled content is
                         moved instead of being removed.
+  -k, --keep-directories
+                        Do not delete video directories during cleanup.
   -L FILE, --logfile=FILE
                         Send output to the specified logfile instead of
                         stdout.
