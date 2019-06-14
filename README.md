@@ -34,29 +34,17 @@ The script operates in 3 modes:
 
 Installation Instructions
 =========================
-1. Ensure you have at least Python v2.6 or higher installed onto your system.
-2. Simply place the __TidyIt.py__ and __TidyIt__ directory together.
+1. Ensure you have at least Python v2.7 or higher installed onto your system.
+```bash
+# Pull in dependencies:
+pip install -r requirements.txt
+```
+2. Simply place the __TidyIt.py__ into your NZBGet scripts directory.
    * __NZBGet users__: you will want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
 
 The Non-NZBGet users can also use this script via a cron (or simply call it
 from the command line) to automatically tidy their directories too.
 See the __Command Line__ section below for more instructions on how to do this.
-
-**Note:** The _TidyIt_ directory provides all of the nessisary dependencies
-in order for this script to work correctly. The directory is only required
-if you do not have the packages already available to your global
-environment. These dependant packages are all identified under the
-_Dependencies_ section below.
-
-Dependencies
-============
-The following dependencies are already provided for you within the
-_TidyIt_ directory and no further effort is required by you. However, it
-should be known that TidyIt.py depends on the following packages:
-
-| Name                         | Version | Source                                                                               |
-| ---------------------------- |:------- |:------------------------------------------------------------------------------------ |
-| pynzbget                     | 0.6.1   | https://pypi.python.org/pypi/pynzbget/0.6.1                                          |
 
 Command Line
 ============

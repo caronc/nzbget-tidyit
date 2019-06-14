@@ -3,7 +3,7 @@
 #
 # TidyIt Scheduler script for NZBGet
 #
-# Copyright (C) 2015-2017 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2015-2019 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -267,7 +267,6 @@ from stat import ST_SIZE
 # This is required if the below environment variables
 # are not included in your environment already
 import sys
-sys.path.insert(0, join(dirname(__file__), 'TidyIt'))
 
 # stat is used to test if the .srt file was fetched okay or not
 from os import stat
@@ -459,7 +458,7 @@ class TidyItScript(SchedulerScript):
                 if not isdir(tmp_dirname):
                     try:
                         makedirs(tmp_dirname)
-                    except Exception, e:
+                    except Exception as e:
                         self.logger.error(
                             'Could not create move path: %s' % tmp_dirname,
                         )
@@ -469,7 +468,7 @@ class TidyItScript(SchedulerScript):
                 try:
                     move(path, tmp_fullpath)
                     self.logger.info('Moved FILE: %s' % path)
-                except Exception, e:
+                except Exception as e:
                     self.logger.error('Could not move FILE: %s' % path)
                     self.logger.debug('Move Exception %s' % str(e))
                     return False
@@ -512,7 +511,7 @@ class TidyItScript(SchedulerScript):
                 if not isdir(tmp_dirname):
                     try:
                         makedirs(tmp_dirname)
-                    except Exception, e:
+                    except Exception as e:
                         self.logger.error(
                             'Could not create move path: %s' % tmp_dirname,
                         )
@@ -523,7 +522,7 @@ class TidyItScript(SchedulerScript):
                     try:
                         move(path, tmp_fullpath)
                         self.logger.info('Moved DIRECTORY: %s' % path)
-                    except Exception, e:
+                    except Exception as e:
                         self.logger.error('Could not move DIRECTORY: %s' % path)
                         self.logger.debug('Move Exception %s' % str(e))
                         return False
