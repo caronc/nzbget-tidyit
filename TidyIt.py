@@ -620,8 +620,8 @@ class TidyItScript(SchedulerScript):
         )
 
         # Apply Filters To Detect actual valid video files
-        _valid_paths = dict([ (k, v) for (k, v) in _valid_paths.items() if \
-                  v['filesize'] >= minsize]).keys()
+        _valid_paths = [ k for (k, v) in _valid_paths.items() if \
+            v['filesize'] >= minsize]
 
         valid_paths = []
         while(len(_valid_paths)):
