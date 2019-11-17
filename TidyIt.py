@@ -784,6 +784,15 @@ class TidyItScript(SchedulerScript):
                     self.logger.debug('Planned handling (zero byte file): %s' % fullpath)
                     continue
 
+                # Match against always trash items (if configured to do so)
+                elif self.always_trash is not None and self.always_trash.search(fullpath):
+                    # we found a file we flagged to always be trashed when
+                    # matched
+                    tidylist.append(fullpath)
+                    self.logger.debug('Planned handling (marked for trash): %s' % fullpath)
+                    # Next File
+                    continue
+
                 if len(valid_paths) > 0:
                     # Handle alike files
                     found = False
@@ -834,15 +843,6 @@ class TidyItScript(SchedulerScript):
                         # Next File since we handled or at
                         # least matched an Alike file
                         continue
-
-                # Match against always trash items (if configured to do so)
-                if self.always_trash is not None and self.always_trash.search(fullpath):
-                    # we found a file we flagged to always be trashed when
-                    # matched
-                    tidylist.append(fullpath)
-                    self.logger.debug('Planned handling (marked for trash): %s' % fullpath)
-                    # Next File
-                    continue
 
             # If we make it to the end, we scanned a file
             # that does not meet filtering criterias
