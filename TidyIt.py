@@ -3,7 +3,7 @@
 #
 # TidyIt Scheduler script for NZBGet
 #
-# Copyright (C) 2015-2019 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2015-2020 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -34,9 +34,9 @@
 #
 # Info about this TidyIt NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Fri, Jul 19th, 2019.
+# Date: Mon, Sep  8th, 2020.
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.8.0
+# Script Version: 0.9.0
 #
 # A script that can tidy up your library by removing stale content
 # left over from removing video files from third party applications.
