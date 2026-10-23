@@ -1,8 +1,8 @@
-__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) and _Scheduling_
+__Note:__ This script was intended to be an [NZBGet](https://nzbget.com) and _Scheduling_
 script for _NZBGet_. However, it also works perfectly well as a standalone script for others too! It can be easily adapted to anyone's environment.
 See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
 
-[![Paypal](http://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
+[![Paypal](https://img.shields.io/badge/paypal-donate-green.svg)](https://www.paypal.com/donate/?hosted_button_id=CR6YF7KLQWQ5E)
 
 
 TidyIt Scheduler Script
@@ -33,13 +33,71 @@ The script operates in 3 modes:
 
 Installation Instructions
 =========================
-1. Ensure you have at least Python v2.7 or higher installed onto your system.
+1. Ensure you have Python v3.8 or newer installed onto your system.
 ```bash
 # Pull in dependencies:
 pip install -r requirements.txt
 ```
 2. Simply place the __TidyIt.py__ into your NZBGet scripts directory.
-   * __NZBGet users__: you will want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
+   * __NZBGet users__: you will want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](https://nzbget.com/download).
+
+NZBGet v23+ (Extension Manager)
+===============================
+Newer NZBGet versions can run TidyIt as a ready-made extension. Everything
+it needs is already inside, so there's nothing to `pip install`.
+
+1. Download `tidyit-<version>-dist.zip` and `tidyit-<version>-dist.zip.sha256`
+   from the [releases page](https://github.com/caronc/nzbget-tidyit/releases).
+
+2. Check the download isn't damaged (optional, but quick):
+   ```bash
+   # Linux
+   sha256sum -c tidyit-<version>-dist.zip.sha256
+
+   # macOS
+   shasum -a 256 -c tidyit-<version>-dist.zip.sha256
+   ```
+   You should see `OK`. On Windows, run this in PowerShell and compare the
+   result with the number inside the `.sha256` file:
+   ```powershell
+   Get-FileHash tidyit-<version>-dist.zip
+   ```
+
+3. Unzip it into NZBGet's scripts folder. You'll find that folder under
+   **Settings > Paths > ScriptDir** (in the official Docker image it's
+   `/downloads/scripts`).
+   ```bash
+   # The zip already holds a TidyIt/ folder, so unzip it right into
+   # the scripts folder
+   unzip tidyit-<version>-dist.zip -d /path/to/nzbget/scripts
+   ```
+   You should end up with `scripts/TidyIt/TidyIt.py`. If you're replacing
+   an older copy, delete the old `scripts/TidyIt/` folder first.
+
+4. Restart NZBGet.
+
+5. In NZBGet, open **Settings > TidyIt**, add the folders to tidy to
+   **VideoPaths**, and click **Save all changes**. Then turn TidyIt on in
+   **Settings > Extension Manager**.
+
+Leave **Mode** on **Preview** at first and press **Tidy Defined Media
+Paths**. The log lists everything TidyIt would clean up without touching
+anything. Switch to **Delete** or **Move** once you're happy with it.
+
+To run it on a schedule, add a task under **Settings > Scheduler** with
+**Command** set to **Script** and **Param** set to **TidyIt**.
+
+Building the Extension
+----------------------
+```bash
+./build-extension.sh
+```
+
+This creates, in `build/`:
+
+- `TidyIt/`: the extension folder
+- `tidyit-<version>-dist.zip`: that folder zipped, for a release
+- `tidyit-<version>-dist.zip.sha256`: its checksum; upload it with the zip
 
 The Non-NZBGet users can also use this script via a cron (or simply call it
 from the command line) to automatically tidy their directories too.
@@ -58,8 +116,8 @@ Usage: TidyIt.py [options] [scandir1 [scandir2 [...]]]
 Options:
   -h, --help            Show this help message and exit.
   -n ENCODING, --encoding=ENCODING
-                        The system encoding to use (utf-8, ISO-8859-1, etc).
-                        The default value is 'UTF-8'.
+                        No longer used (Python 3 handles this for you); it is
+                        only kept so older commands still work.
   -s ENTRIES, --safe-entries=ENTRIES
                         If a safe-entry file/dir is located within a path
                         scanned then the path is ignored. Use safe-entry files
@@ -67,7 +125,7 @@ Options:
                         choice that reside in your video library. You can
                         specify more then one safe-entry by separating them
                         with a comma (,). The default value(s) are
-                        '.tidysafe'.
+                        '.notidy,.tidysafe'.
   -t ENTRIES, --always-trash=ENTRIES
                         Identify any file extensions you wish to always trash
                         if matched. By default this is not set. You can
@@ -88,14 +146,13 @@ Options:
                         This value is interpreted in MB (Megabytes) and
                         defaults to 150 MB.
   -x ENTRIES, --video-extras=ENTRIES
-                        Identify the extra files you keep around with your
-                        video files as a comma delimited lit. The script will
-                        scan for these files explicitly and remove them if a
-                        video file bearing the same name is not found.  For
-                        this reason you do not want to specify video
-                        extensions here. This defaults to '.nfo,.??.srt,.srt,.
-                        sub,.txt,.sub,.idx,.jpg,.tbn,.nzb,.xml,.diz' if
-                        nothing is specified.
+                        Identify the additional extensions you want to keep
+                        with your video files as a comma delimited. The script
+                        will scan for these files explicitly and remove them
+                        if a video file bearing the same name is not found.
+                        For this reason you do not want to specify video
+                        extensions here. This defaults to
+                        '.???.forced.srt,.nzb,.xml' if nothing is specified.
   -a AGE_IN_SEC, --min-age=AGE_IN_SEC
                         Specify the minimum age a directory and/or file must
                         be before considering it for processing. This value is
@@ -121,23 +178,23 @@ Options:
 Here is a simple example:
 ```bash
 # Scan your library (print only mode)
-python TidyIt.py /usr/share/TVShows
+python3 TidyIt.py /usr/share/TVShows
 # Happy with the results? Okay then run the script with the --clean (-c) switch:
 
-python TidyIt.py -c /usr/share/TVShows
+python3 TidyIt.py -c /usr/share/TVShows
 ```
 
 You can scan multiple directories with the following command:
 ```bash
 # Scan your libraries (print only mode)
-python TidyIt.py /usr/share/TVShows /usr/share/Movies
+python3 TidyIt.py /usr/share/TVShows /usr/share/Movies
 ```
 
 If you don't want your content to be removed; you can just have handled content moved to another directory for your review later on. All directory paths are preserved so it won't take any rocket science to figure out where the removed content came from. It's basically a safer mode then the --clean (-c) switch provides.
 ```bash
 # Scan your libraries and move any content to be handled to the
 # TidyIt.Trash in your home directory (~ is supported)
-python TidyIt.py -m ~/TidyIt.Trash /usr/share/TVShows
+python3 TidyIt.py -p ~/TidyIt.Trash /usr/share/TVShows
 ```
 
 If the script behaves as you expect it should, you can schedule it as a cron
@@ -146,3 +203,6 @@ to frequently clean your libraries every day with a command such as:
 # $> crontab -e
 0 0 * * * /path/to/TidyIt.py -c /usr/share/TVShows /usr/share/Movies
 ```
+
+## Donations
+If you like this script and feel like donating, you can do so through either [PayPal](https://www.paypal.com/donate/?hosted_button_id=CR6YF7KLQWQ5E) or [sponsor me](https://github.com/sponsors/caronc)! Thank you so much to everyone who has donated in the past!

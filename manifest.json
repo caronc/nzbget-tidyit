@@ -1,0 +1,276 @@
+{
+    "main": "TidyIt.py",
+    "name": "TidyIt",
+    "homepage": "https://github.com/caronc/nzbget-tidyit",
+    "kind": "SCHEDULER",
+    "displayName": "TidyIt",
+    "version": "1.0.0",
+    "nzbgetMinVersion": "23.0",
+    "author": "Chris Caron",
+    "license": "GPLv3",
+    "about": "Cleans out leftover subtitles, .nfo files and other junk your media library no longer needs.",
+    "queueEvents": "",
+    "requirements": [
+        "This extension requires Python 3.8 or newer."
+    ],
+    "description": [
+        "Media apps such as Plex and KODI only delete the video itself, leaving",
+        "its subtitles, .nfo files and artwork behind. TidyIt finds folders and",
+        "files like these that no longer belong to a video and cleans them up.",
+        "",
+        "It runs in Preview mode by default, which only logs what it would do.",
+        "Check the log before switching to Delete or Move."
+    ],
+    "options": [
+        {
+            "name": "Mode",
+            "displayName": "Mode",
+            "value": "Preview",
+            "description": [
+                "TidyIt Mode.",
+                "",
+                "Identify the TidyIt Mode you want to run in:",
+                " Preview    - Log all planned TidyIt actions, but do not actually perform",
+                "              them. This is the absolute safest mode to survey things with",
+                "              first.",
+                " Delete     - This handles all of the actual tidying of content. Items",
+                "              flagged to be handled are removed in this mode.",
+                " Move       - This mode is similar to Delete except content is moved to",
+                "              the location you specify. This allows you to preview/review",
+                "              the content and manually remove it yourself on your own.",
+                "              The content moved preserves the directory structure it was",
+                "              found as (relative to the search path you specified).",
+                "",
+                "This script's primary function is to handle the content you've identified to",
+                "be tidied in some way or another. Ideally you'll set this script in Preview",
+                "mode and use the logs to determine your level of satisifcation. Once you're",
+                "comfortable with how it's behaving, you can flip the mode to one that will",
+                "actually be more productive (basically any mode but Preview).",
+                "",
+                "I take absolutely no responsibility for any loss of data sustained to your",
+                "system from ill configuration by your part.",
+                "",
+                "NOTE: that you should ALWAYS operate in 'Preview' mode first to confirm",
+                "      that the script doesn't cause irreversable damage to your media library."
+            ],
+            "select": [
+                "Preview",
+                "Delete",
+                "Move"
+            ]
+        },
+        {
+            "name": "MovePath",
+            "displayName": "MovePath",
+            "value": "${DestDir}/TidyIt.Trash",
+            "description": [
+                "Move Path.",
+                "",
+                "This argument is only required if you set your Mode to 'Move'. Identify",
+                "the path you want to move handled content to. If no path is specified then",
+                "the 'Move' mode falls gracefully back into the 'Preview' mode. The Tildy",
+                "(~) can be used to expand the path in efforts to support the home",
+                "directory, and ${DestDir} is NZBGet's own download folder.",
+                "Leave it empty to stay in Preview mode (nothing is moved)."
+            ],
+            "select": []
+        },
+        {
+            "name": "AlwaysTrash",
+            "displayName": "AlwaysTrash",
+            "value": "",
+            "description": [
+                "Always Trash File Extensions.",
+                "",
+                "Identify the files extensions you want to always throw away if matched.",
+                "This is intentionally left blank because the script works fine without it.",
+                "But if your video library gets populated with content you'd prefer",
+                "not have around, you can identify it here.",
+                "",
+                "Use a 'question mark' (?) to identify single placeholders for",
+                "printable characters (this does not include white space). This list is not",
+                "case-sensitive. You can also use a 'asterix' (*) to identify the regular",
+                "expression (.*) or zero or many.  Keep in mind that *.nfo is the same as",
+                "writing .nfo below.  the * is automatically implied at the front. Use a",
+                "comma (,) and/or space to separate more then one entry.",
+                "Example=.zip,.r??,.z7,.0??,.1??,.2??,.3??",
+                "Leave it empty to trash nothing extra."
+            ],
+            "select": []
+        },
+        {
+            "name": "MetaContent",
+            "displayName": "MetaContent",
+            "value": "",
+            "description": [
+                "Meta Content.",
+                "",
+                "Identify metafile content you wish to handle when they're the only things",
+                "left in the video directory.  For example... Microsoft likes putting",
+                "a Thumbs.db file which contains a thumbnail cache of any images and videos",
+                "found. These are not nessisarily useless to us while our media directory",
+                "is populated with content, but is utterly useless to us if it isn't.",
+                "",
+                "We want to identfy meta content here. There is some common meta information",
+                "automatically defined (and do not have to be specified):",
+                "- Thumbs.db: Microsoft Thumbnail Database.",
+                "- .DS_Store: OSX meta directory.",
+                "- .AppleDouble: OSX meta directory.",
+                "- __MACOSX: OSX meta directory.",
+                "- @eaDir: Synology meta directory.",
+                "",
+                "But you can additionally identify more entries here. Use a comma and/or",
+                "space to delimit multiple entries.",
+                "Leave it empty to use just the entries above."
+            ],
+            "select": []
+        },
+        {
+            "name": "VideoPaths",
+            "displayName": "VideoPaths",
+            "value": "",
+            "description": [
+                "Video Libraries to Scan.",
+                "",
+                "Specify any number of directories this script can (recursively) check",
+                "delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc",
+                "For windows users, you can specify: C:\\My Downloads, \\\\My\\Network\\Path, etc",
+                "This is the only option you have to fill in."
+            ],
+            "select": []
+        },
+        {
+            "name": "VideoExtras",
+            "displayName": "VideoExtras",
+            "value": ".???.forced.srt,.nzb,.xml",
+            "description": [
+                "Video Extra File Extensions.",
+                "",
+                "Identify the extra files you keep around with your video files. The script",
+                "will scan for these files explicitly and remove them if a video file",
+                "bearing the same name is not found.  For this reason you do not want to",
+                "specify video extensions here.",
+                "",
+                "You can use a 'question mark' (?) to identify single placeholders for",
+                "printable characters (this does not include white space). This list is not",
+                "case-sensitive. You can also use a 'asterix' (*) to identify the regular",
+                "expression (.*) or zero or many.  Keep in mind that *.nfo is the same as",
+                "writing .nfo below.  the * is automatically implied at the front. Use a",
+                "comma (,) and/or space to separate more then one entry.",
+                "",
+                "Common extras (.nfo, .srt, .??.srt, .sub, .idx, .txt, .jpg, .tbn and so",
+                "on) are always handled, so don't add them here. Listing them again can",
+                "make TidyIt mistake a subtitle such as Movie.en.srt for a leftover.",
+                "Leave it empty to handle just the common extras."
+            ],
+            "select": []
+        },
+        {
+            "name": "VideoMinSize",
+            "displayName": "VideoMinSize",
+            "value": "150",
+            "description": [
+                "Minimum Video Size.",
+                "",
+                "Identify the minimum size (in MB) a video file must be before it's",
+                "treated as part of your collection (and not a sample or extra).",
+                "If you want every video file to be considered equal; simply set",
+                "this value to zero (0).",
+                "Leave it empty to use the default (150)."
+            ],
+            "select": []
+        },
+        {
+            "name": "ProcessMinAge",
+            "displayName": "ProcessMinAge",
+            "value": "3600",
+            "description": [
+                "Minimum Processing Age.",
+                "",
+                "Identify the minimum age (in seconds) a file and/or directory can be",
+                "before it's processed.  This prevents this script from invading a directory",
+                "that may be being concurrently managed by another application around the",
+                "same time.  Anything older then 10 Min (600) is relatively safe.",
+                "The default is 3600 (1 hour) for an extra precautionary sake.",
+                "Set this value to zero (0) if you don't wan't to factor in",
+                "the age of the files and directories scanned.",
+                "Leave it empty to use the default (3600)."
+            ],
+            "select": []
+        },
+        {
+            "name": "VideoExtensions",
+            "displayName": "VideoExtensions",
+            "value": ".mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso",
+            "description": [
+                "File extensions for video files.",
+                "",
+                "Only files with these extensions are considered a video. Extensions must",
+                "be separated with commas.",
+                "Example=.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso",
+                "Leave it empty to use the example list above."
+            ],
+            "select": []
+        },
+        {
+            "name": "SafeEntries",
+            "displayName": "SafeEntries",
+            "value": ".notidy,.tidysafe",
+            "description": [
+                "Tidy Safe Entries.",
+                "",
+                "No doubt there will be a situation where you will point the tidy script",
+                "to a series of directories to which you want to intentionally avoid",
+                "removing.  Use a comma to identify any content that immediately makes",
+                "a directory safe from removal if found. You can specify directory or",
+                "filenames. Simply use a comma and/or space to delimite multiple safe",
+                "entries.",
+                "Leave it empty to use the defaults (.notidy and .tidysafe)."
+            ],
+            "select": []
+        },
+        {
+            "name": "KeepDirectories",
+            "displayName": "KeepDirectories",
+            "value": "No",
+            "description": [
+                "Keep Directories.",
+                "",
+                "Set this to Yes if you want this script to avoid cleaning up directories",
+                "during it's tidying phases. This option will not applie to meta",
+                "directories though."
+            ],
+            "select": [
+                "Yes",
+                "No"
+            ]
+        },
+        {
+            "name": "Debug",
+            "displayName": "Debug",
+            "value": "no",
+            "description": [
+                "Enable debug logging.",
+                "",
+                "If you experience a problem, you can bet I'll have a much easier time solving",
+                "it for you if your logs include debugging.  This can be made possible by",
+                "flipping this flag here."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        }
+    ],
+    "commands": [
+        {
+            "name": "DoTidy",
+            "action": "Tidy Defined Media Paths",
+            "displayName": "DoTidy",
+            "description": [
+                "Tidy the video libraries defined above right now."
+            ]
+        }
+    ],
+    "taskTime": ""
+}

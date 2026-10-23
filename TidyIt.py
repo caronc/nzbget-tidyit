@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python3
 #
 # TidyIt Scheduler script for NZBGet
 #
-# Copyright (C) 2015-2020 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2015-2026 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -34,9 +33,9 @@
 #
 # Info about this TidyIt NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Mon, Sep  8th, 2020.
+# Date: Fri, Oct 23rd, 2026.
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.9.0
+# Script Version: 1.0.0
 #
 # A script that can tidy up your library by removing stale content
 # left over from removing video files from third party applications.
@@ -87,9 +86,10 @@
 # the path you want to move handled content to. If no path is specified then
 # the 'Move' mode falls gracefully back into the 'Preview' mode. The Tildy
 # (~) can be used to expand the path in efforts to support the home
-# directory
+# directory, and ${DestDir} is NZBGet's own download folder.
+# Leave it empty to stay in Preview mode (nothing is moved).
 #
-#MovePath=~/Desktop/TidyIt.Trash
+#MovePath=${DestDir}/TidyIt.Trash
 
 # Always Trash File Extensions.
 #
@@ -105,6 +105,7 @@
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
 # Example=.zip,.r??,.z7,.0??,.1??,.2??,.3??
+# Leave it empty to trash nothing extra.
 #
 #AlwaysTrash=
 
@@ -126,6 +127,7 @@
 #
 # But you can additionally identify more entries here. Use a comma and/or
 # space to delimit multiple entries.
+# Leave it empty to use just the entries above.
 #
 #MetaContent=
 
@@ -133,11 +135,8 @@
 #
 # Specify any number of directories this script can (recursively) check
 # delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc
-# Video Libraries to Scan.
-#
-# Specify any number of directories this script can (recursively) check
-# delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc
 # For windows users, you can specify: C:\My Downloads, \\My\Network\Path, etc
+# This is the only option you have to fill in.
 #
 #VideoPaths=
 
@@ -154,11 +153,13 @@
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
 # comma (,) and/or space to separate more then one entry.
-# The following are already implied and do not need to be specified:
-#     .nfo,.??.srt,.srt,.txt,.nfo,.srr,.sfv,.sub,.idx,.jpg,.tbn,.xml,.jpg,.jpeg
-# Example=.???.forced.srt,.nzb,.xml
 #
-#VideoExtras=.???.forced.srt
+# Common extras (.nfo, .srt, .??.srt, .sub, .idx, .txt, .jpg, .tbn and so
+# on) are always handled, so don't add them here. Listing them again can
+# make TidyIt mistake a subtitle such as Movie.en.srt for a leftover.
+# Leave it empty to handle just the common extras.
+#
+#VideoExtras=.???.forced.srt,.nzb,.xml
 
 # Minimum Video Size.
 #
@@ -166,6 +167,7 @@
 # treated as part of your collection (and not a sample or extra).
 # If you want every video file to be considered equal; simply set
 # this value to zero (0).
+# Leave it empty to use the default (150).
 #
 #VideoMinSize=150
 
@@ -178,6 +180,7 @@
 # The default is 3600 (1 hour) for an extra precautionary sake.
 # Set this value to zero (0) if you don't wan't to factor in
 # the age of the files and directories scanned.
+# Leave it empty to use the default (3600).
 #
 #ProcessMinAge=3600
 
@@ -186,6 +189,7 @@
 # Only files with these extensions are considered a video. Extensions must
 # be separated with commas.
 # Example=.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso
+# Leave it empty to use the example list above.
 #
 #VideoExtensions=.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso
 
@@ -197,33 +201,11 @@
 # a directory safe from removal if found. You can specify directory or
 # filenames. Simply use a comma and/or space to delimite multiple safe
 # entries.
+# Leave it empty to use the defaults (.notidy and .tidysafe).
 #
-#SafeEntries=.notidy
+#SafeEntries=.notidy,.tidysafe
 
-# My Systems File Encoding (UTF-8, UTF-16, ISO-8859-1, ISO-8859-2).
-#
-# All systems have their own encoding; here is a loose guide you can use
-# to determine what encoding you are (if you're not sure):
-# - UTF-8: This is the encoding used by most Linux/Unix filesystems. Just
-#          check the global variable $LANG to see if that's what you are.
-# - UTF-16: This is the encoding usually used by OS/X systems and NTFS.
-# - ISO-8859-1: Also referred to as Latin-1; Microsoft Windows used this
-#               encoding for years (in the past), and still do in some
-#               cases. It supports the English, Spanish, and French language
-#               character sets.
-# - ISO-8859-2: Also referred to as Latin-2; It supports Czech, German,
-#               Hungarian, Polish, Romanian, Croatian, Slovak, and
-#               Slovene character sets.
-#
-# If you wish to add another encoding; just email me and i'll add it.
-# All files that are downloaded will be written to your filesystem using
-# the same encoding your operating system uses.  Since there is no way
-# to detect this (yet), by specifying it here, you can make it possible
-# to handle files with the extended character sets.
-#
-#SystemEncoding=UTF-8
-
-# Keep Directories.
+# Keep Directories (Yes, No).
 #
 # Set this to Yes if you want this script to avoid cleaning up directories
 # during it's tidying phases. This option will not applie to meta
@@ -264,8 +246,6 @@ from shutil import move
 from stat import ST_MTIME
 from stat import ST_SIZE
 
-# This is required if the below environment variables
-# are not included in your environment already
 import sys
 
 # stat is used to test if the .srt file was fetched okay or not
@@ -275,7 +255,10 @@ from os import stat
 from datetime import timedelta
 from datetime import datetime
 
-# pynzbget Script Wrappers
+# NZBGet Extension Manager installs ship their dependencies in lib/
+sys.path.insert(0, join(dirname(abspath(__file__)), 'lib'))
+
+# pynzbget Script Wrappers (pip install pynzbget)
 from nzbget import SKIP_DIRECTORIES
 from nzbget import SchedulerScript
 from nzbget import EXIT_CODE
@@ -285,8 +268,8 @@ from nzbget.Utils import os_path_split
 
 # Meta Information
 MEDIAMETA_FILES_RE = (
-    re.compile('^(backdrop|banner|fanart|folder|poster|season-specials-poster)\.jpe?g', re.IGNORECASE),
-    re.compile('^season([0-9]+)?(-(specials|banner|poster))?(-poster)?\.(tbn|jpe?g)', re.IGNORECASE),
+    re.compile(r'^(backdrop|banner|fanart|folder|poster|season-specials-poster)\.jpe?g', re.IGNORECASE),
+    re.compile(r'^season([0-9]+)?(-(specials|banner|poster))?(-poster)?\.(tbn|jpe?g)', re.IGNORECASE),
     re.compile('^tvshow.nfo', re.IGNORECASE),
     re.compile('^series.xml', re.IGNORECASE)
 )
@@ -296,11 +279,11 @@ MEDIAMETA_FILES_RE = (
 # we can go ahead and clean up
 VIDEO_ALIKE_FILES_RE = (
     # Subtitles
-    re.compile('^(?P<filename>.*)\.[A-Za-z]{2}\.srt$', re.IGNORECASE),
+    re.compile(r'^(?P<filename>.*)\.[A-Za-z]{2}\.srt$', re.IGNORECASE),
     # Thumbnails
-    re.compile('^(?P<filename>.*)-thumb\.(jpe?g)$', re.IGNORECASE),
+    re.compile(r'^(?P<filename>.*)-thumb\.(jpe?g)$', re.IGNORECASE),
     # Meta
-    re.compile('^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|srr|sub|idx)$', re.IGNORECASE),
+    re.compile(r'^(?P<filename>.*)\.(sfv|txt|nfo|tbn|jpe?g|srt|srr|sub|idx)$', re.IGNORECASE),
 )
 
 # Meta Directory(ies)
@@ -333,11 +316,11 @@ OS_METADATA_ENTRIES = (
 # we don't pick from something on this list.
 IGNORE_FILELIST_RE = (
     # Sample Videos should not be included in our main listing
-    re.compile('^(?P<filename>.*)[.-]sample\.[^.]+$', re.IGNORECASE),
-    re.compile('^sample[.-](?P<filename>.*)\.[^.]+$', re.IGNORECASE),
+    re.compile(r'^(?P<filename>.*)[.-]sample\.[^.]+$', re.IGNORECASE),
+    re.compile(r'^sample[.-](?P<filename>.*)\.[^.]+$', re.IGNORECASE),
 )
 
-class TIDYIT_MODE(object):
+class TIDYIT_MODE:
     # Delete content set to by Tidied
     DELETE = "Delete"
     # Move content to the path specified instead of deleting it
@@ -357,13 +340,19 @@ TIDYIT_MODE_DEFAULT = TIDYIT_MODE.PREVIEW
 DEFAULT_VIDEO_EXTENSIONS = \
         '.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso'
 
+# Both names protect a folder: the command line has always used .tidysafe
+# while the NZBGet settings default to .notidy
 DEFAULT_TIDYSAFE_ENTRIES = \
-        '.tidysafe'
+        '.notidy,.tidysafe'
+
+# Extra files that belong to a video (on top of the ones always handled)
+DEFAULT_VIDEO_EXTRAS = \
+        '.???.forced.srt,.nzb,.xml'
 
 # Always default to nothing (forcing it back to a preview mode)
 DEFAULT_MOVE_PATH = ''
 
-class TidyCode(object):
+class TidyCode:
     """ Codes returned by tidy_library() function that provide instructions
     as to what to do next
     """
@@ -384,22 +373,6 @@ DEFAULT_MATCH_MINAGE = 3600
 # presumed to be a sample.
 DEFAULT_VIDEO_MIN_SIZE_MB = 150
 
-# System Encodings
-DEFAULT_ENCODINGS = (
-    # Most Linux Systems
-    'UTF-8',
-    # NTFS/OS-X
-    'UTF-16',
-    # Most French/English/Spanish Windows Systems
-    'ISO-8859-1',
-    # Czech, German, Hungarian, Polish, Romanian,
-    # Croatian, Slovak, Slovene.
-    'ISO-8859-2',
-)
-
-# Filesystem Encoding
-DEFAULT_SYSTEM_ENCODING = 'UTF-8'
-
 # Default Keep Directory Switch
 DEFAULT_KEEP_DIRECTORY_SWITCH = 'No'
 
@@ -414,11 +387,11 @@ class TidyItScript(SchedulerScript):
         and ? becomes .
         """
         return re.sub(
-            '\*', '.*', re.sub(
-            '\?', '.', re.sub(
-            '\)', '\\)', re.sub(
-            '\^', '\\^', re.sub(
-            '\.', '\\.', re_str,
+            r'\*', '.*', re.sub(
+            r'\?', '.', re.sub(
+            r'\)', '\\)', re.sub(
+            r'\^', '\\^', re.sub(
+            r'\.', '\\.', re_str,
         )))))
 
     def _handle(self, path, depth):
@@ -880,19 +853,16 @@ class TidyItScript(SchedulerScript):
         """All of the core cleanup magic happens here.
         """
 
-        if not self.validate(keys=(
-            'Mode',
-            'MovePath',
-            'VideoPaths',
-            'AlwaysTrash',
-            'MetaContent',
-            'VideoMinSize',
-            'ProcessMinAge',
-            'VideoExtensions',
-            'SafeEntries',
-            'VideoExtras',
-            'SystemEncoding')):
+        # VideoPaths is the only option without a default; every other
+        # option falls back to the same value NZBGet shows when it hasn't
+        # been saved yet (Mode falls back to Preview, so nothing is removed)
+        if not self.validate(keys=('VideoPaths', )):
+            return False
 
+        if not self.get('VideoPaths', '').strip():
+            self.logger.error(
+                'No video paths are set. Add the folders to tidy to '
+                'VideoPaths, then click "Save all changes" in NZBGet.')
             return False
 
 
@@ -903,10 +873,16 @@ class TidyItScript(SchedulerScript):
             return False
 
         # Fix tidy-safe entries to object (self.*)
-        self.tidysafe_entries = self.parse_list(self.get('SafeEntries', DEFAULT_TIDYSAFE_ENTRIES))
+        self.tidysafe_entries = self.parse_list(
+            self.get('SafeEntries') or DEFAULT_TIDYSAFE_ENTRIES)
 
         # Store Move Path
-        self.move_path = tidy_path(self.get('MovePath', DEFAULT_MOVE_PATH))
+        move_path = self.get('MovePath')
+        if move_path is None and self.get('DESTDIR'):
+            # Not saved yet; use ${DestDir}/TidyIt.Trash
+            move_path = join(self.get('DESTDIR'), 'TidyIt.Trash')
+
+        self.move_path = tidy_path(move_path or DEFAULT_MOVE_PATH)
         if self.move_path:
             # Convert to absolute path if possible
             self.move_path = abspath(self.move_path)
@@ -917,10 +893,11 @@ class TidyItScript(SchedulerScript):
             self.logger.warning('MovePath not specified; falling back to Preview Mode.')
 
         # Remaining Environment Variables
-        video_extensions = self.parse_list(self.get('VideoExtensions', DEFAULT_VIDEO_EXTENSIONS))
-        video_minsize = int(self.get('VideoMinSize', DEFAULT_VIDEO_MIN_SIZE_MB)) * 1048576
-        minage = int(self.get('ProcessMinAge', DEFAULT_MATCH_MINAGE))
-        encoding = self.get('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
+        video_extensions = self.parse_list(
+            self.get('VideoExtensions') or DEFAULT_VIDEO_EXTENSIONS)
+        video_minsize = int(
+            self.get('VideoMinSize') or DEFAULT_VIDEO_MIN_SIZE_MB) * 1048576
+        minage = int(self.get('ProcessMinAge') or DEFAULT_MATCH_MINAGE)
         paths = self.parse_path_list(self.get('VideoPaths'))
         self.meta_entries = self.parse_list(self.get('MetaContent', OS_METADATA_ENTRIES))
 
@@ -933,7 +910,8 @@ class TidyItScript(SchedulerScript):
         self.logger.debug('Meta Entries set to: "%s"' % '", "'.join(self.meta_entries))
 
         # Extra Managing - build regular expressions based on input
-        video_extras = self.parse_list(self.get('VideoExtras', ''))
+        video_extras = self.parse_list(
+            self.get('VideoExtras', DEFAULT_VIDEO_EXTRAS))
 
         # Start ourselves off with an extras list
         extras = [ x for x in VIDEO_ALIKE_FILES_RE ]
@@ -1005,9 +983,8 @@ class TidyItScript(SchedulerScript):
         """
         Execute the DoTidy Test Action
         """
-        # run a single instance
-        self.tidy()
-        return True
+        # Report a failure (such as no VideoPaths) back to NZBGet
+        return self.tidy() is not False
 
     def main(self, *args, **kwargs):
         """CLI
@@ -1027,8 +1004,8 @@ if __name__ == "__main__":
         "-n",
         "--encoding",
         dest="encoding",
-        help="The system encoding to use (utf-8, ISO-8859-1, etc)." + \
-             " The default value is '%s'" % DEFAULT_SYSTEM_ENCODING + ".",
+        help="No longer used (Python 3 handles this for you); it is only "
+             "kept so older commands still work.",
         metavar="ENCODING",
     )
     parser.add_option(
@@ -1086,7 +1063,8 @@ if __name__ == "__main__":
         "video files as a comma delimited. The script will scan for these " +\
         "files explicitly and remove them if a video file bearing the " +\
         "same name is not found. For this reason you do not want to " +\
-        "specify video extensions here. eg. .nzb, .???.forced.srt",
+        "specify video extensions here. This defaults to '%s' if " % (
+            DEFAULT_VIDEO_EXTRAS) + "nothing is specified.",
         metavar="ENTRIES",
     )
     parser.add_option(
@@ -1159,7 +1137,6 @@ if __name__ == "__main__":
     # careful to only set() values that have been set by an
     # external switch. Otherwise we use defaults or what might
     # already be resident in memory (environment variables).
-    _encoding = options.encoding
     _video_minsize = options.video_minsize
     _video_extras = options.video_extras
     _minage = options.minage
@@ -1225,18 +1202,11 @@ if __name__ == "__main__":
     if _metacontent:
         script.set('MetaContent', _metacontent)
 
-    if _encoding:
-        script.set('SystemEncoding', _encoding)
-
     if _video_extras:
         # Set our video extras
         script.set('VideoExtras', _video_extras)
 
     if not script.get('VideoPaths') and videopaths:
-        if not _encoding:
-            # Force defaults if not set
-            script.set('SystemEncoding', DEFAULT_SYSTEM_ENCODING)
-
         if not (_clean or _move_path):
             script.set('Mode', TIDYIT_MODE_DEFAULT)
 
@@ -1264,7 +1234,7 @@ if __name__ == "__main__":
 
         # Force our video extras if not other wise specified
         if script.get('VideoExtras') is None:
-            script.set('VideoExtras', '')
+            script.set('VideoExtras', DEFAULT_VIDEO_EXTRAS)
 
         # Finally set the directory the user specified for scanning
         script.set('VideoPaths', videopaths)
