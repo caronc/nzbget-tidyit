@@ -1,0 +1,66 @@
+{
+    "about": {
+        "message": "Cleans out leftover subtitles, .nfo files and other junk your media library no longer needs.",
+        "description": "Short description of the TidyIt extension shown in settings. DO NOT translate file extensions such as '.nfo'."
+    },
+    "description": {
+        "message": "Media apps such as Plex and KODI only delete the video itself, leaving\nits subtitles, .nfo files and artwork behind. TidyIt finds folders and\nfiles like these that no longer belong to a video and cleans them up.\n\nIt runs in Preview mode by default, which only logs what it would do.\nCheck the log before switching to Delete or Move.",
+        "description": "Full description of the extension shown in settings. DO NOT translate 'TidyIt', 'Plex', 'KODI', '.nfo' or the mode names 'Preview', 'Delete' and 'Move'."
+    },
+    "requirements": {
+        "message": "This extension requires Python 3.8 or newer.",
+        "description": "System requirements (each requirement is a separate string). DO NOT translate technical version strings (e.g., Python 3.8.x)."
+    },
+    "mode_desc": {
+        "message": "TidyIt Mode.\n\nIdentify the TidyIt Mode you want to run in:\n Preview    - Log all planned TidyIt actions, but do not actually perform\n              them. This is the absolute safest mode to survey things with\n              first.\n Delete     - This handles all of the actual tidying of content. Items\n              flagged to be handled are removed in this mode.\n Move       - This mode is similar to Delete except content is moved to\n              the location you specify. This allows you to preview/review\n              the content and manually remove it yourself on your own.\n              The content moved preserves the directory structure it was\n              found as (relative to the search path you specified).\n\nThis script's primary function is to handle the content you've identified to\nbe tidied in some way or another. Ideally you'll set this script in Preview\nmode and use the logs to determine your level of satisfaction. Once you're\ncomfortable with how it's behaving, you can flip the mode to one that will\nactually be more productive (basically any mode but Preview).\n\nI take absolutely no responsibility for any loss of data sustained to your\nsystem from ill configuration by your part.\n\nNOTE: that you should ALWAYS operate in 'Preview' mode first to confirm\n      that the script doesn't cause irreversible damage to your media library.",
+        "description": "Help text for the Mode option in TidyIt. DO NOT translate the mode names 'Preview', 'Delete' and 'Move' as they are fixed option values. Keep the column layout of the mode list. DO NOT translate the exact uppercase label (NOTE) as it is used to render UI badges."
+    },
+    "movepath_desc": {
+        "message": "Move Path.\n\nThis argument is only required if you set your Mode to 'Move'. Identify\nthe path you want to move handled content to. If no path is specified then\nthe 'Move' mode falls gracefully back into the 'Preview' mode. The tilde\n(~) can be used to expand the path in efforts to support the home\ndirectory, and ${DestDir} is NZBGet's own download folder.\nLeave it empty to stay in Preview mode (nothing is moved).",
+        "description": "Help text for the MovePath option in TidyIt. DO NOT translate the mode names 'Move' and 'Preview', the tilde (~) or ${DestDir}. DO NOT translate 'NZBGet'."
+    },
+    "alwaystrash_desc": {
+        "message": "Always Trash File Extensions.\n\nIdentify the files extensions you want to always throw away if matched.\nThis is intentionally left blank because the script works fine without it.\nBut if your video library gets populated with content you'd prefer\nnot have around, you can identify it here.\n\nUse a 'question mark' (?) to identify single placeholders for\nprintable characters (this does not include white space). This list is not\ncase-sensitive. You can also use an 'asterisk' (*) to identify the regular\nexpression (.*) or zero or many.  Keep in mind that *.nfo is the same as\nwriting .nfo below.  the * is automatically implied at the front. Use a\ncomma (,) and/or space to separate more than one entry.\nExample=.zip,.r??,.z7,.0??,.1??,.2??,.3??\nLeave it empty to trash nothing extra.",
+        "description": "Help text for the AlwaysTrash option in TidyIt. DO NOT translate wildcard patterns or file extensions (e.g., *.nfo, .nfo, (.*)). DO NOT translate the example value after 'Example='."
+    },
+    "metacontent_desc": {
+        "message": "Meta Content.\n\nIdentify metafile content you wish to handle when they're the only things\nleft in the video directory.  For example... Microsoft likes putting\na Thumbs.db file which contains a thumbnail cache of any images and videos\nfound. These are not necessarily useless to us while our media directory\nis populated with content, but is utterly useless to us if it isn't.\n\nWe want to identify meta content here. There is some common meta information\nautomatically defined (and do not have to be specified):\n- Thumbs.db: Microsoft Thumbnail Database.\n- .DS_Store: OSX meta directory.\n- .AppleDouble: OSX meta directory.\n- __MACOSX: OSX meta directory.\n- @eaDir: Synology meta directory.\n\nBut you can additionally identify more entries here. Use a comma and/or\nspace to delimit multiple entries.\nLeave it empty to use just the entries above.",
+        "description": "Help text for the MetaContent option in TidyIt. DO NOT translate the file and folder names (Thumbs.db, .DS_Store, .AppleDouble, __MACOSX, @eaDir) or product names (Microsoft, OSX, Synology)."
+    },
+    "videopaths_desc": {
+        "message": "Video Libraries to Scan.\n\nSpecify any number of directories this script can (recursively) check\ndelimited by a comma and/or space. ie: /home/nuxref/mystuff, /path/no3, etc\nFor windows users, you can specify: C:\\My Downloads, \\\\My\\Network\\Path, etc\nThis is the only option you have to fill in.",
+        "description": "Help text for the VideoPaths option in TidyIt. DO NOT translate the example paths."
+    },
+    "videoextras_desc": {
+        "message": "Video Extra File Extensions.\n\nIdentify the extra files you keep around with your video files. The script\nwill scan for these files explicitly and remove them if a video file\nbearing the same name is not found.  For this reason you do not want to\nspecify video extensions here.\n\nYou can use a 'question mark' (?) to identify single placeholders for\nprintable characters (this does not include white space). This list is not\ncase-sensitive. You can also use an 'asterisk' (*) to identify the regular\nexpression (.*) or zero or many.  Keep in mind that *.nfo is the same as\nwriting .nfo below.  the * is automatically implied at the front. Use a\ncomma (,) and/or space to separate more than one entry.\n\nCommon extras (.nfo, .srt, .??.srt, .sub, .idx, .txt, .jpg, .tbn and so\non) are always handled, so don't add them here. Listing them again can\nmake TidyIt mistake a subtitle such as Movie.en.srt for a leftover.\nLeave it empty to handle just the common extras.",
+        "description": "Help text for the VideoExtras option in TidyIt. DO NOT translate wildcard patterns, file extensions or file names (e.g., *.nfo, .??.srt, Movie.en.srt). DO NOT translate 'TidyIt'."
+    },
+    "videominsize_desc": {
+        "message": "Minimum Video Size.\n\nIdentify the minimum size (in MB) a video file must be before it's\ntreated as part of your collection (and not a sample or extra).\nIf you want every video file to be considered equal; simply set\nthis value to zero (0).\nLeave it empty to use the default (150).",
+        "description": "Help text for the VideoMinSize option in TidyIt. Keep the unit 'MB' as is."
+    },
+    "processminage_desc": {
+        "message": "Minimum Processing Age.\n\nIdentify the minimum age (in seconds) a file and/or directory can be\nbefore it's processed.  This prevents this script from invading a directory\nthat may be being concurrently managed by another application around the\nsame time.  Anything older than 10 Min (600) is relatively safe.\nThe default is 3600 (1 hour) for an extra precautionary sake.\nSet this value to zero (0) if you don't want to factor in\nthe age of the files and directories scanned.\nLeave it empty to use the default (3600).",
+        "description": "Help text for the ProcessMinAge option in TidyIt. Keep the numbers as they are."
+    },
+    "videoextensions_desc": {
+        "message": "File extensions for video files.\n\nOnly files with these extensions are considered a video. Extensions must\nbe separated with commas.\nExample=.mkv,.avi,.divx,.xvid,.mov,.wmv,.mp4,.mpg,.mpeg,.vob,.iso\nLeave it empty to use the example list above.",
+        "description": "Help text for the VideoExtensions option in TidyIt. DO NOT translate file extensions. DO NOT translate the example value after 'Example='."
+    },
+    "safeentries_desc": {
+        "message": "Tidy Safe Entries.\n\nNo doubt there will be a situation where you will point the tidy script\nto a series of directories to which you want to intentionally avoid\nremoving.  Use a comma to identify any content that immediately makes\na directory safe from removal if found. You can specify directory or\nfilenames. Simply use a comma and/or space to delimit multiple safe\nentries.\nLeave it empty to use the defaults (.notidy and .tidysafe).",
+        "description": "Help text for the SafeEntries option in TidyIt. DO NOT translate the file names '.notidy' and '.tidysafe'."
+    },
+    "keepdirectories_desc": {
+        "message": "Keep Directories.\n\nSet this to Yes if you want this script to avoid cleaning up directories\nduring its tidying phases. This option will not apply to meta\ndirectories though.",
+        "description": "Help text for the KeepDirectories option in TidyIt. DO NOT translate the fixed value 'Yes'."
+    },
+    "debug_desc": {
+        "message": "Enable debug logging.\n\nIf you experience a problem, you can bet I'll have a much easier time solving\nit for you if your logs include debugging.  This can be made possible by\nflipping this flag here.",
+        "description": "Help text for the Debug option in TidyIt."
+    },
+    "dotidy_desc": {
+        "message": "Tidy the video libraries defined above right now.",
+        "description": "Help text for the DoTidy command in TidyIt."
+    }
+}

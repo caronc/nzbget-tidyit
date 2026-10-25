@@ -68,7 +68,7 @@
 #
 # This script's primary function is to handle the content you've identified to
 # be tidied in some way or another. Ideally you'll set this script in Preview
-# mode and use the logs to determine your level of satisifcation. Once you're
+# mode and use the logs to determine your level of satisfaction. Once you're
 # comfortable with how it's behaving, you can flip the mode to one that will
 # actually be more productive (basically any mode but Preview).
 #
@@ -76,7 +76,7 @@
 # system from ill configuration by your part.
 #
 # NOTE: that you should ALWAYS operate in 'Preview' mode first to confirm
-#       that the script doesn't cause irreversable damage to your media library.
+#       that the script doesn't cause irreversible damage to your media library.
 #
 #Mode=Preview
 
@@ -84,7 +84,7 @@
 #
 # This argument is only required if you set your Mode to 'Move'. Identify
 # the path you want to move handled content to. If no path is specified then
-# the 'Move' mode falls gracefully back into the 'Preview' mode. The Tildy
+# the 'Move' mode falls gracefully back into the 'Preview' mode. The tilde
 # (~) can be used to expand the path in efforts to support the home
 # directory, and ${DestDir} is NZBGet's own download folder.
 # Leave it empty to stay in Preview mode (nothing is moved).
@@ -100,10 +100,10 @@
 #
 # Use a 'question mark' (?) to identify single placeholders for
 # printable characters (this does not include white space). This list is not
-# case-sensitive. You can also use a 'asterix' (*) to identify the regular
+# case-sensitive. You can also use an 'asterisk' (*) to identify the regular
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
-# comma (,) and/or space to separate more then one entry.
+# comma (,) and/or space to separate more than one entry.
 # Example=.zip,.r??,.z7,.0??,.1??,.2??,.3??
 # Leave it empty to trash nothing extra.
 #
@@ -114,10 +114,10 @@
 # Identify metafile content you wish to handle when they're the only things
 # left in the video directory.  For example... Microsoft likes putting
 # a Thumbs.db file which contains a thumbnail cache of any images and videos
-# found. These are not nessisarily useless to us while our media directory
+# found. These are not necessarily useless to us while our media directory
 # is populated with content, but is utterly useless to us if it isn't.
 #
-# We want to identfy meta content here. There is some common meta information
+# We want to identify meta content here. There is some common meta information
 # automatically defined (and do not have to be specified):
 # - Thumbs.db: Microsoft Thumbnail Database.
 # - .DS_Store: OSX meta directory.
@@ -134,7 +134,7 @@
 # Video Libraries to Scan.
 #
 # Specify any number of directories this script can (recursively) check
-# delimited by a comma and or space. ie: /home/nuxref/mystuff, /path/no3, etc
+# delimited by a comma and/or space. ie: /home/nuxref/mystuff, /path/no3, etc
 # For windows users, you can specify: C:\My Downloads, \\My\Network\Path, etc
 # This is the only option you have to fill in.
 #
@@ -149,10 +149,10 @@
 #
 # You can use a 'question mark' (?) to identify single placeholders for
 # printable characters (this does not include white space). This list is not
-# case-sensitive. You can also use a 'asterix' (*) to identify the regular
+# case-sensitive. You can also use an 'asterisk' (*) to identify the regular
 # expression (.*) or zero or many.  Keep in mind that *.nfo is the same as
 # writing .nfo below.  the * is automatically implied at the front. Use a
-# comma (,) and/or space to separate more then one entry.
+# comma (,) and/or space to separate more than one entry.
 #
 # Common extras (.nfo, .srt, .??.srt, .sub, .idx, .txt, .jpg, .tbn and so
 # on) are always handled, so don't add them here. Listing them again can
@@ -176,9 +176,9 @@
 # Identify the minimum age (in seconds) a file and/or directory can be
 # before it's processed.  This prevents this script from invading a directory
 # that may be being concurrently managed by another application around the
-# same time.  Anything older then 10 Min (600) is relatively safe.
+# same time.  Anything older than 10 Min (600) is relatively safe.
 # The default is 3600 (1 hour) for an extra precautionary sake.
-# Set this value to zero (0) if you don't wan't to factor in
+# Set this value to zero (0) if you don't want to factor in
 # the age of the files and directories scanned.
 # Leave it empty to use the default (3600).
 #
@@ -199,7 +199,7 @@
 # to a series of directories to which you want to intentionally avoid
 # removing.  Use a comma to identify any content that immediately makes
 # a directory safe from removal if found. You can specify directory or
-# filenames. Simply use a comma and/or space to delimite multiple safe
+# filenames. Simply use a comma and/or space to delimit multiple safe
 # entries.
 # Leave it empty to use the defaults (.notidy and .tidysafe).
 #
@@ -208,7 +208,7 @@
 # Keep Directories (Yes, No).
 #
 # Set this to Yes if you want this script to avoid cleaning up directories
-# during it's tidying phases. This option will not applie to meta
+# during its tidying phases. This option will not apply to meta
 # directories though.
 #
 #KeepDirectories=No

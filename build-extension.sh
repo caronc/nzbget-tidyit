@@ -20,8 +20,8 @@ ZIP="tidyit-${VERSION}-dist.zip"
 rm -rf build
 mkdir -p "${OUT}"
 
-# Copy in the script, the manifest and the docs
-cp TidyIt.py manifest.json README.md LICENSE "${OUT}/"
+# Copy in the script, the manifest, the docs and the translations
+cp -r TidyIt.py manifest.json README.md LICENSE _locales "${OUT}/"
 
 # Install every package TidyIt needs into lib/, picking versions that
 # still work on Python 3.8
